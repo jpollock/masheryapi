@@ -6,7 +6,10 @@ def get(siteId, apikey, secret, resource, params):
     resourceEndpoint = '/v2/rest'
     url = apiHost + resourceEndpoint + '/' + siteId + resource + '?apikey=' + apikey + '&sig=' + hash(apikey, secret) + params
     response = requests.get(url)
-    return response.json()
+    if (response.status_code == 200):
+        return response.json()
+    else:
+        return None
 
 def post(siteId, apikey, secret, payload):
     resourceEndpoint = '/v2/json-rpc'
