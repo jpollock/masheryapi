@@ -10,6 +10,25 @@ Requires checkout of https://github.com/jpollock/masheryapi in the same parent d
 
 #### reportingForAppsAndKeys
 
-Usage: python reportingForAppsAndKeys.py &lt;Mashery V2 API Key> <Mashery V2 API Secret> &lt;Mashery Area/Site ID> &lt;Start Date> &lt;End Date> &lt;Output Filename> &lt;List of APIs (optional)>
+usage: reportingForAppsAndKeys.py [-h] [--apis APIS [APIS ...]]
+                                  [--fields FIELDS [FIELDS ...]]
+                                  apikey secret siteId startDate endDate
+                                  outputFile
+
+positional arguments:
+  apikey                Mashery V2 API Key
+  secret                Mashery V2 API Secret
+  siteId                Mashery Area/Site ID
+  startDate             Start Date
+  endDate               End Date
+  outputFile            Output Filename
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --apis APIS [APIS ...]
+                        List of APIs by name, space separated
+  --fields FIELDS [FIELDS ...]
+                        List of key/app fields to retrieve, space separated
+
 
 Output: CSV of API key performance data.
