@@ -1,36 +1,6 @@
-import sys, datetime, urllib, argparse
+import sys, urllib, argparse
 sys.path.append( '../lib/' )
-import masheryV2
-
-def dayGap(startDate, endDate):
-  dt1 = datetime.datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ")
-  dt2 = datetime.datetime.strptime(endDate, "%Y-%m-%dT%H:%M:%SZ")
-  return (dt2 - dt1).days  
-
-def sevenDays(startDate, endDate):
-  dt1 = datetime.datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ")
-  if dayGap(startDate, endDate) > 7:
-    dt1 = datetime.datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ")
-    dt1_1 = dt1 + datetime.timedelta(days=7)
-    endDate = dt1_1.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-  return [startDate, endDate]
-
-def daysToReportOn(startDate, endDate):
-  daysToReportOn = []
-  
-  sevenDayGap = sevenDays(startDate, endDate)
-  daysToReportOn.append(sevenDayGap)
-  dayGap(sevenDayGap[1], endDate)
-
-  while dayGap(sevenDayGap[1], endDate) > 7:
-    sevenDayGap = sevenDays(sevenDayGap[1], endDate)
-    daysToReportOn.append(sevenDayGap)
-  
-  if (dayGap(sevenDayGap[1], endDate) < 7 and sevenDayGap[1] != endDate): 
-    daysToReportOn.append([sevenDayGap[1], endDate])
-
-  return daysToReportOn
+import masheryV2, masheryDate
 
 def apiName(apis, apiId):
   for api in apis['result']['items']:
@@ -47,6 +17,7 @@ def main(argv):
   parser.add_argument("endDate", type=str, help="End Date")
   parser.add_argument("outputFile", type=str, help="Output Filename")
   parser.add_argument('--apis',  nargs='+', help='List of APIs by name, space separated')
+  parser.add_argument('--keys',  nargs='+', help='List of keys to include in results, space separated')
   parser.add_argument('--fields',  nargs='+', help='List of key/app fields to retrieve, space separated')
   args = parser.parse_args()
   
@@ -57,7 +28,7 @@ def main(argv):
   endDate = args.endDate
   outputFile = args.outputFile
 
-  if dayGap(startDate, endDate) < 1:
+  if masheryDate.dayGap(startDate, endDate) < 1:
     print 'ERROR: endDate must be at least 1 day past startDate'
     return
 
@@ -69,10 +40,15 @@ def main(argv):
   # get list of APIs
   all_apis = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select * from services ITEMS 1000"]}')
 
+  keys = args.keys
+
+  if args.keys == None:
+    keys = []
+
   results = []
 
-  dates = daysToReportOn(startDate, endDate)
-  print dates
+  dates = masheryDate.daysToReportOn(startDate, endDate)
+  
   for api in all_apis['result']['items']:
     try:
         if (len(apis) > 0):
@@ -95,22 +71,29 @@ def main(argv):
 
   f.write(headers)
   for result in results:
+
     try:
+        if (len(keys) > 0):
+          keys.index(result['serviceDevKey'])
+
         key = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + customFields + ' from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}')
 
         application_name = '<UNKNOWN>'
-        if (key['result']['total_items'] > 0) :            
-            if (args.fields != None):
-              customFieldValues = ''
-              for field in args.fields:
-                splitFields = field.split('.')
-                if len(splitFields) == 2:
-                  customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]][splitFields[1]] + '",'
-                else:
-                  customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]] + '",'
+        if (key['result']['total_items'] > 0) :
+          customFieldValues = ''
+          if (args.fields != None):
+              
+            for field in args.fields:
+              splitFields = field.split('.')
+              if len(splitFields) == 2:
+                customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]][splitFields[1]] + '",'
+              else:
+                customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]] + '",'
 
         f.write(customFieldValues + result['serviceKey'] + ',"' + apiName(all_apis, result['serviceKey']) + '",'+ result['serviceDevKey']  + ',' + result['startDate']  + ',' + result['endDate']  + ','+ str(result['callStatusSuccessful'])  + ',' + str(result['callStatusBlocked']) + ',' + str(result['callStatusOther']) + ',' + str(result['callStatusSuccessful'] +  result['callStatusBlocked'] + result['callStatusOther']) + '\n')
     except TypeError:
+        pass
+    except ValueError:
         pass
 
   f.close()

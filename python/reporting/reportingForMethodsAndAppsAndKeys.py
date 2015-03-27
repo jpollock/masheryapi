@@ -1,37 +1,6 @@
-import sys, datetime, urllib
-sys.path.append( '../../masheryapi/python' )
-import masheryV2
-
-def dayGap(startDate, endDate):
-  dt1 = datetime.datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ")
-  dt2 = datetime.datetime.strptime(endDate, "%Y-%m-%dT%H:%M:%SZ")
-  return (dt2 - dt1).days  
-
-def sevenDays(startDate, endDate):
-  dt1 = datetime.datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ")
-  if dayGap(startDate, endDate) > 7:
-    dt1 = datetime.datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ")
-    dt1_1 = dt1 + datetime.timedelta(days=7)
-    endDate = dt1_1.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-  return [startDate, endDate]
-
-def daysToReportOn(startDate, endDate):
-  daysToReportOn = []
-  
-  sevenDayGap = sevenDays(startDate, endDate)
-
-  if (dayGap(startDate, endDate) < 7):
-    daysToReportOn.append([sevenDayGap[0], endDate])
-  else:
-    while dayGap(sevenDayGap[1], endDate) > 7:
-      sevenDayGap = sevenDays(sevenDayGap[1], endDate)
-      daysToReportOn.append(sevenDayGap)
-  
-    if (dayGap(sevenDayGap[1], endDate) < 7): 
-      daysToReportOn.append([sevenDayGap[1], endDate])
-
-  return daysToReportOn
+import sys, urllib, argparse
+sys.path.append( '../lib/' )
+import masheryV2, masheryDate
 
 def apiName(apis, apiId):
   for api in apis['result']['items']:
@@ -40,27 +9,38 @@ def apiName(apis, apiId):
 
 def main(argv):
   
-  if (len(sys.argv) < 7 or len(sys.argv) > 8):
-    print 'Usage: python reportingForMethodsAndAppsAndKeys.py <Mashery V2 API Key> <Mashery V2 API Secret> <Mashery Area/Site ID> <Start Date> <End Date> <Output Filename> <List of APIs (optional)>'
+  parser = argparse.ArgumentParser()
+  parser.add_argument("apikey", type=str, help="Mashery V2 API Key")
+  parser.add_argument("secret", type=str, help="Mashery V2 API Secret")
+  parser.add_argument("siteId", type=str, help="Mashery Area/Site ID")
+  parser.add_argument("startDate", type=str, help="Start Date")
+  parser.add_argument("endDate", type=str, help="End Date")
+  parser.add_argument("outputFile", type=str, help="Output Filename")
+  parser.add_argument('--apis',  nargs='+', help='List of APIs by name, space separated')
+  parser.add_argument('--fields',  nargs='+', help='List of key/app fields to retrieve, space separated')
+  args = parser.parse_args()
+  
+  apikey = args.apikey
+  secret = args.secret
+  siteId = args.siteId
+  startDate = args.startDate
+  endDate = args.endDate
+  outputFile = args.outputFile
+
+  if masheryDate.dayGap(startDate, endDate) < 1:
+    print 'ERROR: endDate must be at least 1 day past startDate'
     return
 
-  apikey = sys.argv[1] 
-  secret = sys.argv[2]
-  siteId = sys.argv[3]
-  startDate = sys.argv[4]
-  endDate = sys.argv[5]
-  outputFile = sys.argv[6]
+  apis = args.apis
 
-  apis = []
-
-  if len(sys.argv) == 8:
-    apis = sys.argv[7]
+  if args.apis == None:
+    apis = []
 
   all_apis = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select * from services ITEMS 1000"]}')
 
   results = []
 
-  dates = daysToReportOn(startDate, endDate)
+  dates = masheryDate.daysToReportOn(startDate, endDate)
   
   for api in all_apis['result']['items']:
     try:

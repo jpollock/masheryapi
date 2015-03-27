@@ -11,6 +11,7 @@ Requires checkout of https://github.com/jpollock/masheryapi in the same parent d
 #### reportingForAppsAndKeys
 
 usage: reportingForAppsAndKeys.py [-h] [--apis APIS [APIS ...]]
+                                  [--keys keys [keys ...]]
                                   [--fields FIELDS [FIELDS ...]]
                                   apikey secret siteId startDate endDate
                                   outputFile
@@ -27,6 +28,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --apis APIS [APIS ...]
                         List of APIs by name, space separated
+  --keys keys [keys ...]
+                        List of keys to include in results, space separated
   --fields FIELDS [FIELDS ...]
                         List of key/app fields to retrieve, space separated
 
