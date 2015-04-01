@@ -1,4 +1,4 @@
-import sys, urllib, argparse
+import sys, urllib, argparse, time
 sys.path.append( '../lib/' )
 import masheryV2, masheryDate
 
@@ -18,7 +18,7 @@ def main(argv):
   parser.add_argument("outputFile", type=str, help="Output Filename")
   parser.add_argument('--apis',  nargs='+', help='List of APIs by name, space separated')
   parser.add_argument('--keys',  nargs='+', help='List of keys to include in results, space separated')
-  parser.add_argument('--fields',  nargs='+', help='List of key/app fields to retrieve, space separated')
+  parser.add_argument('--additionalfields',  nargs='+', help='List of key/app fields to retrieve, space separated')
   args = parser.parse_args()
   
   apikey = args.apikey
@@ -64,37 +64,34 @@ def main(argv):
 
   f = open(outputFile,'w')
   customFields = 'application.name'
-  if (args.fields != None):
-    customFields = ','.join(args.fields)
+  if (args.additionalfields != None):
+    customFields = ','.join(args.additionalfields)
 
-  headers = customFields + ',service.name,service.id,key.apikey,startDate,endDate,successful,blocked,other,total\n'
+  headers = customFields + ',service.id,service.name,key.apikey,startDate,endDate,successful,blocked,other,total\n'
 
   f.write(headers)
   for result in results:
+    if result['serviceDevKey'] in keys or len(keys) == 0:
+      
+      time.sleep(1) # adding slight delay so as to decrease chances of hitting mashery api qps limits
+      key = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + customFields + ' from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}')
+      
+      unknown_field = '<UNKNOWN>'
 
-    try:
-        if (len(keys) > 0):
-          keys.index(result['serviceDevKey'])
-
-        key = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + customFields + ' from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}')
-
-        application_name = '<UNKNOWN>'
-        if (key['result']['total_items'] > 0) :
-          customFieldValues = ''
-          if (args.fields != None):
-              
-            for field in args.fields:
-              splitFields = field.split('.')
-              if len(splitFields) == 2:
-                customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]][splitFields[1]] + '",'
-              else:
-                customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]] + '",'
+      if (key['result']['total_items'] > 0) :
+        customFieldValues = ''
+        for field in customFields.split(','):
+          splitFields = field.split('.')
+          try:
+            if len(splitFields) == 2:
+              customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]][splitFields[1]] + '",'
+            else:
+              customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]] + '",'
+          except TypeError:
+            customFieldValues = customFieldValues + '"' + unknown_field + '",'
+            pass
 
         f.write(customFieldValues + result['serviceKey'] + ',"' + apiName(all_apis, result['serviceKey']) + '",'+ result['serviceDevKey']  + ',' + result['startDate']  + ',' + result['endDate']  + ','+ str(result['callStatusSuccessful'])  + ',' + str(result['callStatusBlocked']) + ',' + str(result['callStatusOther']) + ',' + str(result['callStatusSuccessful'] +  result['callStatusBlocked'] + result['callStatusOther']) + '\n')
-    except TypeError:
-        pass
-    except ValueError:
-        pass
 
   f.close()
 if __name__ == "__main__":
