@@ -51,8 +51,7 @@ def main(argv):
   
   for api in all_apis['result']['items']:
     try:
-        if (len(apis) > 0):
-          str(apis.index(api['name'])) + ' ' + api['name']
+      if api['name'] in apis or len(apis) == 0:
 
         print 'Processing...' + api['name']
         for date in dates:
@@ -71,6 +70,7 @@ def main(argv):
 
   f.write(headers)
   for result in results:
+    
     if result['serviceDevKey'] in keys or len(keys) == 0:
       
       time.sleep(1) # adding slight delay so as to decrease chances of hitting mashery api qps limits

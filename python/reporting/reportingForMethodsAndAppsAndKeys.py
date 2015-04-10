@@ -44,8 +44,7 @@ def main(argv):
   
   for api in all_apis['result']['items']:
     try:
-        if (len(apis) > 0):
-          str(apis.index(api['name'])) + ' ' + api['name']
+      if api['name'] in apis or len(apis) == 0:
 
         print 'Processing...' + api['name']
         for date in dates:
@@ -64,7 +63,6 @@ def main(argv):
   f.write('Application,API ID,API Name,API Method,Key,Start Date,End Date,Calls\n')
   for result in results:
     try:
-
         key = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select *, application from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}')
 
         application_name = '<UNKNOWN>'
