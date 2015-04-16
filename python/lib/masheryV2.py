@@ -1,6 +1,6 @@
 import requests, json, hashlib, time
 
-apiHost = 'http://api.mashery.com'
+apiHost = 'https://api.mashery.com'
 
 def get(siteId, apikey, secret, resource, params):
     resourceEndpoint = '/v2/rest'
