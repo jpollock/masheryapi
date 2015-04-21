@@ -17,7 +17,6 @@ def main(argv):
   parser.add_argument("endDate", type=str, help="End Date")
   parser.add_argument("outputFile", type=str, help="Output Filename")
   parser.add_argument('--apis',  nargs='+', help='List of APIs by name, space separated')
-  parser.add_argument('--additionalfields',  nargs='+', help='List of key/app fields to retrieve, space separated')
   args = parser.parse_args()
   
   apikey = args.apikey

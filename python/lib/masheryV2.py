@@ -16,7 +16,11 @@ def post(siteId, apikey, secret, payload):
     headers = {"Content-type": "application/json"}
     url = apiHost + resourceEndpoint + '/' + siteId + '?apikey=' + apikey + '&sig=' + hash(apikey, secret)
     response = requests.post(url, headers=headers, data=payload)
-    return response.json()
+    if (response.status_code == 200):
+        return response.json()
+    else:
+        return None
+
 
 def hash(apikey, secret):
     authHash = hashlib.md5();
