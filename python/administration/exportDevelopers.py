@@ -21,7 +21,7 @@ def main(argv):
   parser.add_argument("secret", type=str, help="Mashery V2 API Secret")
   parser.add_argument("siteId", type=str, help="Mashery Area/Site ID")
   parser.add_argument("outputFile", type=str, help="Output Filename")
-  parser.add_argument('--fields',  nargs='+', help='List of member fields to retrieve, space separated')
+  parser.add_argument('--fields',  nargs='+', help='List of member fields to retrieve, space separated, e.g username email')
 
   args = parser.parse_args()
   
