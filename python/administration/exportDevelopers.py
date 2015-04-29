@@ -4,13 +4,13 @@ import masheryV2, masheryDate, keysReports
 
 def fetchAllDevelopers(siteId, apikey, secret, fields):
   allDevelopers = []
-  result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + ','.join(fields) + ' from members ITEMS 1"]}')
-  total_items = result['result']['total_items']
-  processed_items = 0
-  while (processed_items < total_items):
-    result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + ','.join(fields) + ' from members ITEMS 1000"]}')
+  result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + ','.join(fields) + ' from members ITEMS 1000"]}')
+  total_pages = result['result']['total_pages']
+  page = 1
+  while (page < total_pages):
+    result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + ','.join(fields) + ' from members PAGE ' + str(page) + ' ITEMS 1000"]}')
     allDevelopers.extend(result['result']['items'])
-    processed_items = result['result']['total_items']
+    page = page + 1
 
   return allDevelopers
 

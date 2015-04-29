@@ -31,13 +31,14 @@ def processKey(siteId, apikey, secret, key, delete, archive):
 
 def fetchAllKeys(siteId, apikey, secret):
   allKeys = []
-  result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select * from keys ITEMS 1"]}')
-  total_items = result['result']['total_items']
-  processed_items = 0
-  while (processed_items < total_items):
-    result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select *, application, member, service from keys ITEMS 1000"]}')
+  result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select * from keys ITEMS 1000"]}')
+  total_pages = result['result']['total_pages']
+  page = 1
+  while (page < total_pages):
+    result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select *, application, member, service from keys PAGE ' + str(page) + ' ITEMS 1000"]}')
     allKeys.extend(result['result']['items'])
-    processed_items = result['result']['total_items']
+    page = page + 1
+    print page
 
   return allKeys
 
@@ -59,6 +60,17 @@ def hasActivity(apikey, allActiveKeys):
       return True
 
   return False
+
+def writeToFile(fileName, list):
+    f = open(fileName,'w')
+    
+    for item in list:
+      if fileName == 'keys.csv':
+        f.write(item['apikey'])
+      else:
+        f.write(item['serviceDevKey'])
+      f.write('\n')
+    f.close()
 
 def main(argv):
   
@@ -92,7 +104,11 @@ def main(argv):
   
   allKeys = fetchAllKeys(siteId, apikey, secret)
 
+  writeToFile('keys.csv', allKeys)
+
   allActiveKeys = fetchAllActiveKeys(siteId, apikey, secret, startDate, endDate)
+
+  writeToFile('active_keys.csv', allActiveKeys)
 
   for key in allKeys:
     if (masheryDate.dayGap(key['created'], keyCreateDate) > 0):
@@ -106,8 +122,8 @@ def main(argv):
         else:          
           if key['application'] == None or key['application']['is_packaged'] == False:
             print '{actionType}: {apikey}, created on {created} for user: {username} ({email})'.format(actionType= actionType, apikey= key['apikey'], created= key['created'], username= key['username'], email= key['member']['email'] if key['member'] != None else '' )
-            print processKey(siteId, apikey, secret, key, delete, archive)
-
+            #print processKey(siteId, apikey, secret, key, delete, archive)
+  
 
 if __name__ == "__main__":
     main(sys.argv[1:])
