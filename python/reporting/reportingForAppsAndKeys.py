@@ -84,9 +84,9 @@ def main(argv):
           splitFields = field.split('.')
           try:
             if len(splitFields) == 2:
-              customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]][splitFields[1]] + '",'
+              customFieldValues = customFieldValues + '"' + unicode(key['result']['items'][0][splitFields[0]][splitFields[1]], "utf-8") + '",'
             else:
-              customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]] + '",'
+              customFieldValues = customFieldValues + '"' + unicode(key['result']['items'][0][splitFields[0]], "utf-8") + '",'
           except TypeError:
             customFieldValues = customFieldValues + '"' + unknown_field + '",'
             pass
