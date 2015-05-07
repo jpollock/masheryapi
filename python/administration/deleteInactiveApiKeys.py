@@ -38,7 +38,6 @@ def fetchAllKeys(siteId, apikey, secret):
     result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select *, application, member, service from keys PAGE ' + str(page) + ' ITEMS 1000"]}')
     allKeys.extend(result['result']['items'])
     page = page + 1
-    print page
 
   return allKeys
 
@@ -122,7 +121,7 @@ def main(argv):
         else:          
           if key['application'] == None or key['application']['is_packaged'] == False:
             print '{actionType}: {apikey}, created on {created} for user: {username} ({email})'.format(actionType= actionType, apikey= key['apikey'], created= key['created'], username= key['username'], email= key['member']['email'] if key['member'] != None else '' )
-            #print processKey(siteId, apikey, secret, key, delete, archive)
+            print processKey(siteId, apikey, secret, key, delete, archive)
   
 
 if __name__ == "__main__":
