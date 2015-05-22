@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys, urllib, argparse, time, json
 sys.path.append( '../lib/' )
 import masheryV2, masheryDate, keysReports
@@ -40,7 +41,6 @@ def main(argv):
   for key in allKeys:
     fieldValues = ''
     unknown_field = '<UNKNOWN>'
-
     for field in fields:
       splitFields = field.split('.')
       try:
@@ -52,14 +52,15 @@ def main(argv):
           fieldValues = fieldValues + '"' + t_fieldValues + '",'
         else:
           if len(splitFields) == 2:
-            fieldValues = fieldValues + '"' + key[splitFields[0]][splitFields[1]] + '",'
+            value = key[splitFields[0]][splitFields[1]]
+            fieldValues = fieldValues + '"' + unicode(value) + '",'
           else:
-            fieldValues = fieldValues + '"' + key[splitFields[0]] + '",'
+            fieldValues = fieldValues + '"' + unicode(key[splitFields[0]]) + '",'
       except TypeError:
         fieldValues = fieldValues + '"' + unknown_field + '",'
         pass
-
-    f.write(fieldValues + '\n')
+    fieldValues = fieldValues + '\n'
+    f.write(fieldValues.encode('utf8'))
 
 
 if __name__ == "__main__":

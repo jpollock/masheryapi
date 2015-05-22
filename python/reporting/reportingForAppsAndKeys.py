@@ -57,6 +57,7 @@ def main(argv):
         print 'Processing...' + api['name']
         for date in dates:
           urlParams = '&start_date=' + urllib.quote_plus(date[0]) + '&end_date=' + urllib.quote_plus(date[1]) + '&format=json&limit=1000'
+          print masheryV2.get(siteId, apikey, secret, '/reports/calls/developer_activity/service/' + api['service_key'], urlParams)
           results.extend(masheryV2.get(siteId, apikey, secret, '/reports/calls/developer_activity/service/' + api['service_key'], urlParams))
 
     except ValueError:
@@ -75,7 +76,9 @@ def main(argv):
     
     if result['serviceDevKey'] in keys or len(keys) == 0:
       time.sleep(1) # adding slight delay so as to decrease chances of hitting mashery api qps limits
-      key = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + customFields + ' from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}')
+      query = '{"method":"object.query","id":1,"params":["select ' + customFields + ' from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}'
+      
+      key = masheryV2.post(siteId, apikey, secret, query)
       
       unknown_field = '<UNKNOWN>'
 
@@ -83,12 +86,14 @@ def main(argv):
         customFieldValues = ''
         for field in customFields.split(','):
           splitFields = field.split('.')
-          
           try:
-            if len(splitFields) == 2:
-              customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]][splitFields[1]] + '",'
+            if key['result']['items'][0][splitFields[0]] != None:
+              if len(splitFields) == 2:
+                customFieldValues = customFieldValues + '"' + str(key['result']['items'][0][splitFields[0]][splitFields[1]]) + '",'
+              else:
+                customFieldValues = customFieldValues + '"' + str(key['result']['items'][0][splitFields[0]]) + '",'
             else:
-              customFieldValues = customFieldValues + '"' + key['result']['items'][0][splitFields[0]] + '",'
+              customFieldValues = customFieldValues + '"' + unknown_field + '",'  
           except TypeError:
             customFieldValues = customFieldValues + '"' + unknown_field + '",'
             pass
