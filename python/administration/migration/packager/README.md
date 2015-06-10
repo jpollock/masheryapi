@@ -1,4 +1,6 @@
 # Setup
+* Checkout repo
+    * git clone git@github.com:jpollock/masheryapi.git
 * PYTHONPATH=$PYTHONPATH:<path to checked out repo>/masheryapi/python/lib/api:<path to checked out repo>/masheryapi/python/lib/services
 * Make a directory for key backup and note location
 * 
