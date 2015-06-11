@@ -7,6 +7,12 @@ def archive(backup_location, key_data):
   f.write('\n')
   f.close()
 
+def noAppNoMember(keys):
+  for key in keys:
+    if (key['member'] == None or key['application'] == None):
+      return True
+  return False
+
 def getPackageKey(key_data, package_data):
   package = {}
   package['id'] = package_data['package']['id']
@@ -84,6 +90,16 @@ def main(argv):
   nodryrun = args.nodryrun
 
   try:
+    keys = base.fetch(site_id, apikey, secret, 'keys', '*, member, application', '')
+  except ValueError as err:
+    loggerMigrator.error('Error fetching data: %s', json.dumps(err.args))
+    return
+
+  if (noAppNoMember(keys) == True):
+    loggerMigrator.error('Applicationless and memberless keys still exist.')
+    return 
+
+  try:
     f = open(migration_map_location, 'r')
     file_contents = f.read()
     migration_data = json.loads(file_contents)
@@ -99,7 +115,12 @@ def main(argv):
     ready = True
 
     if (application['id'] != ''):
-      application_data = base.fetch(site_id, apikey, secret, 'applications', '*, keys', 'WHERE id = ' + str(application['id']))
+      try:
+        application_data = base.fetch(site_id, apikey, secret, 'applications', '*, keys', 'WHERE id = ' + str(application['id']))
+      except ValueError as err:
+        loggerMigrator.error('Problem fetching application: %s', json.dumps(err.args))
+        return 
+
       if (len(application_data) == 1):
         application_data = application_data[0]
       else:
@@ -110,11 +131,16 @@ def main(argv):
         loggerMigrator.error('Application data missing keys %s', json.dumps(application))
         continue        
 
+    keys_to_delete = []
     package_keys_to_create = []
     for key in application['keys']:
       # fetch key data
-      #key_data = getKeyData(site_id, apikey, secret, key)
-      key_data = base.fetch(site_id, apikey, secret, 'keys', '*, member, application, service, developer_class', 'WHERE apikey = \'' + key['apikey'] + '\' AND service_key = \'' + key['service_key'] + '\'')
+      try:
+        key_data = base.fetch(site_id, apikey, secret, 'keys', '*, member, application, service, developer_class', 'WHERE apikey = \'' + key['apikey'] + '\' AND service_key = \'' + key['service_key'] + '\'')
+      except ValueError as err:
+        loggerMigrator.error('Problem fetching key: %s', json.dumps(err.args))
+        return 
+
       if (len(key_data) == 1):
         key_data = key_data[0]
       else:
@@ -122,7 +148,12 @@ def main(argv):
         continue
 
       # fetch api data
-      api_data = base.fetch(site_id, apikey, secret, 'services', '*', 'WHERE service_key =\'' + key_data['service_key'] + '\'')
+      try:
+        api_data = base.fetch(site_id, apikey, secret, 'services', '*', 'WHERE service_key =\'' + key_data['service_key'] + '\'')
+      except ValueError as err:
+        loggerMigrator.error('Problem fetching api: %s', json.dumps(err.args))
+        return 
+
       if (len(api_data) == 1):
         api_data = api_data[0]
       else:
@@ -130,7 +161,12 @@ def main(argv):
         continue
 
       # fetch package data
-      package_data = base.fetch(site_id, apikey, secret, 'plans', '*, package, plan_services.service_definition', 'WHERE id = ' + str(key['plan_id']))
+      try:
+        package_data = base.fetch(site_id, apikey, secret, 'plans', '*, package, plan_services.service_definition', 'WHERE id = ' + str(key['plan_id']))
+      except ValueError as err:
+        loggerMigrator.error('Problem fetching package: %s', json.dumps(err.args))
+        return 
+
       if (len(package_data) == 1):
         package_data = package_data[0]
       else:
@@ -143,16 +179,22 @@ def main(argv):
         ready = False
 
       if (ready == True):
+        keys_to_delete.append(key_data)
         package_key = getPackageKey(key_data, package_data)
         package_keys_to_create.append(package_key)
       else:
         loggerMigrator.error('Key not ready to be migrated: %s', json.dumps(application))
 
     if (ready == True):
-      loggerMigrator.info('Ready for migration: %s ', json.dumps(application))
+      #loggerMigrator.info('Ready for migration: %s ', json.dumps(application))
       # before enabling app for packager we must delete and archive all keys
       for key in application['keys']:
-        key_data = base.fetch(site_id, apikey, secret, 'keys', '*, member, application, service, developer_class', 'WHERE apikey = \'' + key['apikey'] + '\' AND service_key = \'' + key['service_key'] + '\'')
+        try:
+          key_data = base.fetch(site_id, apikey, secret, 'keys', '*, member, application, service, developer_class', 'WHERE apikey = \'' + key['apikey'] + '\' AND service_key = \'' + key['service_key'] + '\'')
+        except ValueError as err:
+          loggerMigrator.error('Problem fetching key: %s', json.dumps(err.args))
+          return 
+
         if (len(key_data) == 1):
           key_data = key_data[0]
         else:
@@ -160,15 +202,27 @@ def main(argv):
           continue
 
         archive(backup_location, key_data)
-        if (nodryrun == True):
-          base.delete(site_id, apikey, secret, 'key', key_data) 
+
+      if (nodryrun == True):
+        try:
+          base.delete(site_id, apikey, secret, 'key', keys_to_delete) 
+        except ValueError as err:
+          loggerMigrator.error('Problem deleting keys: %s', json.dumps(err.args))
+          return 
 
       if (nodryrun == True):
         application_data['is_packaged'] = True
-        base.update(site_id, apikey, secret, 'application', application_data)
+        try:
+          base.update(site_id, apikey, secret, 'application', application_data)
+        except ValueError as err:
+          loggerMigrator.error('Problem updating application: %s', json.dumps(err.args))
+          return 
 
-        for package_key in package_keys_to_create:
-          base.create(site_id, apikey, secret, 'package_key', package_key)
+        try:
+          base.create(site_id, apikey, secret, 'package_key', package_keys_to_create)
+        except ValueError as err:
+          loggerMigrator.error('Problem creating package key: %s', json.dumps(err.args))
+          return 
 
 if __name__ == "__main__":
     main(sys.argv[1:])    

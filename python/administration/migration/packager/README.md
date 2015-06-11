@@ -2,7 +2,7 @@
 * Checkout repo
     * git clone git@github.com:jpollock/masheryapi.git
     * git checkout packager_migration
-* PYTHONPATH=$PYTHONPATH:<path to checked out repo>/masheryapi/python/lib/api:<path to checked out repo>/masheryapi/python/lib/services
+* PYTHONPATH=$PYTHONPATH:\<path to checked out repo>/masheryapi/python/lib/api:\<path to checked out repo>/masheryapi/python/lib/services
 * Make a directory for key backup and note location
 * 
 
@@ -22,11 +22,11 @@ cd to <path to checked out repo>/masheryapi/python/administration/migration/pack
 
 2. python getServiceKeysToMigrate.py
 
-    usage: getServiceKeysToMigrate.py [-h] apikey secret site_id
+    usage: getServiceKeysToMigrate.py [-h] apikey secret site_id output
     
     Example:
     
-     python getServiceKeysToMigrate.py mymasherykey mymasherysecret 99999
+     python getServiceKeysToMigrate.py mymasherykey mymasherysecret 99999 /users/jppolloc/somefile.json
      
 3. python migrateServiceKeyToPackageKey.py
 

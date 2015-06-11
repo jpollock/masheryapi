@@ -1,6 +1,12 @@
 import os, sys, urllib, argparse, time, requests, json, logging, random, string
 import base, logger
 
+def noAppNoMember(keys):
+  for key in keys:
+    if (key['member'] == None or key['application'] == None):
+      return True
+  return False
+  
 def updateKeyWithPackageData(key, apis, packages):
   key_to_migrate = {}
   key_to_migrate['apikey'] = key['apikey']
@@ -37,9 +43,18 @@ def main(argv):
   site_id = args.site_id
   output = args.output
 
-  apis = base.fetch(site_id, apikey, secret, 'service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
-  packages = base.fetch(site_id, apikey, secret, 'packages', '*, plans', '')
-  applications = base.fetch(site_id, apikey, secret, 'applications', '*, keys, keys.developer_class', '')
+  try:
+    apis = base.fetch(site_id, apikey, secret, 'service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
+    packages = base.fetch(site_id, apikey, secret, 'packages', '*, plans', '')
+    applications = base.fetch(site_id, apikey, secret, 'applications', '*, keys, keys.developer_class', '')
+    keys = base.fetch(site_id, apikey, secret, 'keys', '*, member, application', '')
+  except ValueError as err:
+    loggerMigrator.error('Error fetching data: %s', json.dumps(err.args))
+    return
+
+  if (noAppNoMember(keys) == True):
+    loggerMigrator.error('Applicationless and memberless keys still exist.')
+    return 
 
   applications_to_migrate = []
   for application in applications:
@@ -57,7 +72,7 @@ def main(argv):
     applications_to_migrate.append(application_to_migrate)
 
   f = open(output,'w')
-  loggerMigrator.info('Extracting application and keys: %s %s', str(application['id']), application['name'])
+  loggerMigrator.info('Dumping applications and keys')
   f.write(json.dumps(applications_to_migrate, indent=4, sort_keys=True))
   f.close()
 

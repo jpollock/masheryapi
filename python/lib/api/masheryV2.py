@@ -18,10 +18,9 @@ def post(siteId, apikey, secret, payload):
     response = requests.post(url, headers=headers, data=payload)
     
     if (response.status_code == 200):
-        return response.json()
+      return response.json()
     else:
-        print response.json()
-        raise ValueError(response.json()['error']['message']) 
+      raise ValueError(response.json()['error']) 
 
 def hash(apikey, secret):
     authHash = hashlib.md5();

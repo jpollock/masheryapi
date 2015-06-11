@@ -14,7 +14,7 @@ def fetch(site_id, apikey, secret, object_type, fields, filter_clause):
       results.extend(result['result']['items'])
       
   except ValueError as err:
-    print err
+    raise ValueError(err.args)
 
   return results
 
@@ -25,7 +25,7 @@ def create(siteId, apikey, secret, object_type, item_data):
     result = masheryV2.post(siteId, apikey, secret, method)
     return result
   except ValueError as err:
-    print err
+    raise ValueError(err.args)
 
 def update(siteId, apikey, secret, object_type, item_data):
   result = []
@@ -34,13 +34,13 @@ def update(siteId, apikey, secret, object_type, item_data):
     result = masheryV2.post(siteId, apikey, secret, method)
     return result
   except ValueError as err:
-    print err
+    raise ValueError(err.args)
 
 def delete(siteId, apikey, secret, object_type, item_data):
   result = []
-  method = '{"method":"' + object_type + '.delete","id":1,"params":[' + str(item_data['id']) + ']}'
+  method = '{"method":"' + object_type + '.delete","id":1,"params":[' + json.dumps(item_data) + ']}'
   try:
     result = masheryV2.post(siteId, apikey, secret, method)
     return result
   except ValueError as err:
-    print err
+    raise ValueError(err.args)

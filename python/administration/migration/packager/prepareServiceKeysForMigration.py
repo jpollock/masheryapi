@@ -7,32 +7,6 @@ def randomPassword():
   random.seed = (os.urandom(1024))
   return ''.join(random.choice(chars) for i in range(length))
 
-def memberExists(username):
-  member = base.fetch(site_id, apikey, secret, 'members', '*, applications', 'WHERE username = \'' + username + '\'')
-  if (len(member) == 1 and len(member[0]['applications']) < 100):
-    return member
-  else:
-    return None
-
-def getMemberForKey():
-  member = {}
-  count = 1
-  while (len(member) == 0):
-    username = 'Memberlesskey' + str(count)
-  '''count = count + 1
-  username = 'Memberlesskey' + str(count)
-  member['username'] = username
-  username = 'pmtester1'
-  member = base.fetch(site_id, apikey, secret, 'members', '*, applications', 'WHERE username = \'' + username + '\'')
-  if (len(member) == 0 or (len(member) == 1 and len(member[0]['applications']) > 99)):
-    member['passwd_new'] = randomPassword()
-    member['email'] = member_email
-    member['display_name'] = username
-    member['area_status'] = 'active'
-    '''
-  return member
-
-
 def main(argv):
   global loggerMigrator
   loggerMigrator =  logger.setup('migrator', 'myapp.log')
@@ -42,6 +16,7 @@ def main(argv):
   parser.add_argument("secret", type=str, help="Mashery V2 API Secret")
   parser.add_argument("site_id", type=str, help="Mashery Area/Site ID")
   parser.add_argument("member_email", type=str, help="Member email")
+  parser.add_argument('--nodryrun', action='store_true', default=False, help='specify to perform work, leave off command for dry run')
 
   args = parser.parse_args()
 
@@ -49,6 +24,7 @@ def main(argv):
   secret = args.secret
   site_id = args.site_id
   member_email = args.member_email
+  nodryrun = args.nodryrun
 
   keys = base.fetch(site_id, apikey, secret, 'keys', '*, member, application', '')
   
@@ -57,41 +33,57 @@ def main(argv):
   memberless = False
   for key in keys:
     member = {} # keep this around in case we need it for applicationless keys
-    print key['apikey'] + ' ' + str(key_count) + ' ' + str(member_count)
     if (key['member'] == None):
       loggerMigrator.info('Memberless key: %s', key['apikey'])
-      memberless = True
-      if (key_count < 101):
-        username = 'Memberlesskey' + str(member_count)
-        member['username'] = username
-        member = base.fetch(site_id, apikey, secret, 'members', '*, applications', 'WHERE username = \'' + username + '\'')
-        if (len(member) == 0):
-          member = {}
+      if (nodryrun == True):
+        memberless = True
+        if (key_count < 101):
+          username = 'Memberlesskey' + str(member_count)
           member['username'] = username
-          member['passwd_new'] = randomPassword()
-          member['email'] = member_email
-          member['display_name'] = username
-          member['area_status'] = 'active'
-          member = base.create(site_id, apikey, secret, 'member', member)
-          member = member['result']
-        else:
-          member = member[0]
+          member = base.fetch(site_id, apikey, secret, 'members', '*, applications', 'WHERE username = \'' + username + '\'')
+          if (len(member) == 0):
+            member = {}
+            member['username'] = username
+            member['passwd_new'] = randomPassword()
+            member['email'] = member_email
+            member['display_name'] = username
+            member['area_status'] = 'active'
+            try:
+              loggerMigrator.info('Creating Member: %s', json.dumps(member))
+              member = base.create(site_id, apikey, secret, 'member', member)
+              member = member['result']
+            except ValueError as err:
+              loggerMigrator.error(json.dumps(err.args))
+              return
+          else:
+            member = member[0]
     else:
       member = key['member']
-    print member
+
     if (key['application'] == None):
       loggerMigrator.info('Applicationless key: %s', key['apikey'])
-      application = {}
-      application['name'] = 'Application for ' + member['username']
-      application['member'] = member
+      if (nodryrun == True):
+        application = {}
+        application['name'] = 'Application for ' + member['username']
+        application['member'] = member
 
-      application = base.create(site_id, apikey, secret, 'application', application)
+        try:
+          loggerMigrator.info('Creating Application: %s', json.dumps(application))
+          application = base.create(site_id, apikey, secret, 'application', application)
+        except ValueError as err:
+          loggerMigrator.error(json.dumps(err.args))
+          return
 
-      key['application'] = application['result']
-      if (memberless == True):
-        key['member'] = member
+        key['application'] = application['result']
+        if (memberless == True):
+          key['member'] = member
       
-      base.update(site_id, apikey, secret, 'key', key)
+        try:
+          loggerMigrator.info('Updating key: %s', json.dumps(key))
+          base.update(site_id, apikey, secret, 'key', key)
+        except ValueError as err:
+          loggerMigrator.error(json.dumps(err.args))
+          return
 
     key_count = key_count + 1
     if (key_count == 100):

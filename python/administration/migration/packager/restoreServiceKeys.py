@@ -23,7 +23,7 @@ def main(argv):
   parser.add_argument("site_id", type=str, help="Mashery Area/Site ID")
   parser.add_argument("backup_location", type=str, help="Fully qualified path for backup of key data")
   parser.add_argument('migration_map_location',  type=str, help="Fully qualified path for backup of key data")
-  parser.add_argument('dry_run', type=bool, default=True, help="Dry run, default is true")
+  parser.add_argument('--nodryrun', action='store_true', default=False, help='specify to perform work, leave off command for dry run')
 
   args = parser.parse_args()
 
@@ -32,7 +32,7 @@ def main(argv):
   site_id = args.site_id
   backup_location = args.backup_location
   migration_map_location = args.migration_map_location
-  dry_run = args.dry_run
+  nodryrun = args.nodryrun
   
   try:
     f = open(migration_map_location, 'r')
@@ -76,14 +76,15 @@ def main(argv):
       #loggerMigrator.info('Migration readiness for %s ::: %s', json.dumps(key_data), json.dumps(ready_data))
 
     # before enabling app for packager we must delete and archive all keys
-    for package_key in package_keys_to_delete:
-      base.delete(site_id, apikey, secret, 'package_key', package_key) 
+    if (nodryrun == True):
+      for package_key in package_keys_to_delete:
+        base.delete(site_id, apikey, secret, 'package_key', package_key) 
 
-    application_data['is_packaged'] = False
-    base.update(site_id, apikey, secret, 'application', application_data)
+      application_data['is_packaged'] = False
+      base.update(site_id, apikey, secret, 'application', application_data)
 
-    for key in keys_to_restore:
-      base.create(site_id, apikey, secret, 'key', key)
+      for key in keys_to_restore:
+        base.create(site_id, apikey, secret, 'key', key)
 
 if __name__ == "__main__":
     main(sys.argv[1:])    
