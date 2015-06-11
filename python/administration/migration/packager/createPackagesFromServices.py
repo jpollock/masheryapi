@@ -1,5 +1,6 @@
 #http://demo3.api.mashery.com/apicommons/businesses/?api_key=sxx53fntq4g3uu8s74pyydjj
 import sys, urllib, argparse, time, requests, json, random, hashlib, ssl
+import logger
 
 def post(area_name, apikey, secret, payload):
     apiHost = 'https://'+area_name+'.admin.mashery.com/proxy'
@@ -145,6 +146,9 @@ def buildPlanEndpoints(api, plan):
 
 
 def main(argv):
+  global loggerMigrator
+  loggerMigrator =  logger.setup('migrator', 'myapp.log')
+
   parser = argparse.ArgumentParser()
   parser.add_argument("apikey", type=str, help="Mashery V2 API Key")
   parser.add_argument("secret", type=str, help="Mashery V2 API Secret")

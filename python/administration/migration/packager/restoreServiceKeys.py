@@ -1,6 +1,5 @@
 import sys, urllib, argparse, time, requests, json, logging
-import base
-import masheryV2, masheryDate, keysReports
+import base, logger
 
 def getServiceKey(backup_location, key): 
   f = open(backup_location +  str(key['apikey']) + '_' + str(key['service_key']) + '.json', 'r')
@@ -15,25 +14,8 @@ def getServiceKey(backup_location, key):
   return key_data
 
 def main(argv):
-    # set up logging to file - see previous section for more details
-  logging.basicConfig(level=logging.INFO,
-                      format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                      datefmt='%m-%d %H:%M',
-                      filename='myapp.log',
-                      filemode='w')
-  # define a Handler which writes INFO messages or higher to the sys.stderr
-  console = logging.StreamHandler()
-  console.setLevel(logging.INFO)
-  # set a format which is simpler for console use
-  formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-  # tell the handler to use this format
-  console.setFormatter(formatter)
-  # add the handler to the root logger
-  logging.getLogger('').addHandler(console)
-  logging.getLogger('requests').setLevel(logging.ERROR)
-
   global loggerMigrator
-  loggerMigrator = logging.getLogger('migrator')
+  loggerMigrator =  logger.setup('migrator', 'myapp.log')
 
   parser = argparse.ArgumentParser()
   parser.add_argument("apikey", type=str, help="Mashery V2 API Key")
