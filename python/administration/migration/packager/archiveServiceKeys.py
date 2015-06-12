@@ -120,7 +120,7 @@ def readyToBeMigrated(key_data, api_data, package_data):
 def main(argv):
     # setup logging
     global loggerMigrator
-    loggerMigrator =    logger.setup('migrateServiceKeyToPackageKey', 'myapp.log')
+    loggerMigrator =    logger.setup('archiveServiceKeys', 'myapp.log')
 
     # get arguments
     parser = argparse.ArgumentParser()
@@ -129,7 +129,6 @@ def main(argv):
     parser.add_argument("site_id", type=str, help="Mashery Area/Site ID")
     parser.add_argument("backup_location", type=str, help="Fully qualified path for backup of key data")
     parser.add_argument('migration_map_location',    type=str, help="Fully qualified path for backup of key data")
-    parser.add_argument('--nodryrun', action='store_true', default=False, help='specify to perform work, leave off command for dry run')
 
     args = parser.parse_args()
 
@@ -138,7 +137,6 @@ def main(argv):
     site_id = args.site_id
     backup_location = args.backup_location
     migration_map_location = args.migration_map_location
-    nodryrun = args.nodryrun
 
     # fetch keys in area, to see if there are any existing
     # memberless or applicationless ones
@@ -153,7 +151,7 @@ def main(argv):
         return 
 
     # get the input file, containing a json representation
-    # of apps to migrate
+    # of apps to archive
     try:
         f = open(migration_map_location, 'r')
         file_contents = f.read()
@@ -166,16 +164,6 @@ def main(argv):
         loggerMigrator.error('Invalid JSON in migration map file.')
         return
 
-    # get apis and packages
-    apis = []
-    packages = []
-    try:
-        apis = base.fetch(site_id, apikey, secret, 'services', '*', '')
-        packages = base.fetch(site_id, apikey, secret, 'plans', '*, package, plan_services.service_definition', '')
-    except ValueError as err:
-        loggerMigrator.error('Error fetching data: %s', json.dumps(err.args))
-        return
-
     # process each application to see if it is ready to go
     for application in migration_data:
         ready = True
@@ -183,68 +171,22 @@ def main(argv):
         application_data = fetchApplication(site_id, apikey, secret, application)
 
         if (application_data == None):
-            return False
+            loggerMigrator.error('Problem retrieving application.')
+            continue
 
-        keys_to_delete = [] # list of keys to delete
-        package_keys_to_create = [] # list of package keys to create
+        if (application_data['is_packaged'] == True):
+            loggerMigrator.error('Application is packaged.')
+            continue
 
         for key in application['keys']:
 
             # fetch key data
             key_data = fetchKey(site_id, apikey, secret, key)
             if (key_data == None):
-                return False
+                loggerMigrator.error('Problem retrieving key.')
+                return
 
-            # fetch api data
-            api_data = getApiForKey(apis, key_data)
-            if (api_data == None):
-                loggerMigrator.error('Problem fetching api: %s', json.dumps(key_data))
-                return False
-
-            # fetch package data
-            package_data = getPackagePlanForKey(packages, key)
-            if (package_data == None):
-                loggerMigrator.error('Problem fetching package: %s', json.dumps(key_data))
-                return False
-
-            ready_data = readyToBeMigrated(key_data, api_data, package_data)
-            #loggerMigrator.info('Migration readiness for %s ::: %s', json.dumps(key_data), json.dumps(ready_data))
-            if (ready_data['ready'] == False):
-                ready = False
-
-            if (ready == True):
-                keys_to_delete.append(key_data)
-                package_key = getPackageKey(key_data, package_data)
-                package_keys_to_create.append(package_key)
-            else:
-                loggerMigrator.error('Key not ready to be migrated: %s', json.dumps(application))        
-
-        if (ready == True):
-            #loggerMigrator.info('Ready for migration: %s ', json.dumps(application))
-            # before enabling app for packager we must delete and archive all keys
-            #for key in keys_to_delete:
-            #    archive(backup_location, key)
-
-            if (nodryrun == True):
-                try:
-                    base.delete(site_id, apikey, secret, 'key', keys_to_delete) 
-                except ValueError as err:
-                    loggerMigrator.error('Problem deleting keys: %s', json.dumps(err.args))
-                    return 
-
-            if (nodryrun == True):
-                application_data['is_packaged'] = True
-                try:
-                    base.update(site_id, apikey, secret, 'application', application_data)
-                except ValueError as err:
-                    loggerMigrator.error('Problem updating application: %s', json.dumps(err.args))
-                    return 
-
-                try:                  
-                    base.create(site_id, apikey, secret, 'package_key', package_keys_to_create)
-                except ValueError as err:
-                    loggerMigrator.error('Problem creating package key: %s', json.dumps(err.args))
-                    return 
+            archive(backup_location, key_data)
 
 if __name__ == "__main__":
         main(sys.argv[1:])        
