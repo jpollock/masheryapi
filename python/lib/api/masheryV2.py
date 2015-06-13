@@ -1,29 +1,33 @@
 import requests, json, hashlib, time
 
-apiHost = 'http://api.example.com'
+class MasheryV2:
 
-def get(siteId, apikey, secret, resource, params):
-    resourceEndpoint = '/v2/rest'
-    url = apiHost + resourceEndpoint + '/' + siteId + resource + '?apikey=' + apikey + '&sig=' + hash(apikey, secret) + params
-    response = requests.get(url)
-    if (response.status_code == 200):
-        return response.json()
-    else:
-        return None
+    def __init__(self, protocol, api_host):
+        self.protocol = protocol
+        self.api_host = api_host
 
-def post(siteId, apikey, secret, payload):
-    resourceEndpoint = '/v2/json-rpc'
-    headers = {"Content-type": "application/json"}
-    url = apiHost + resourceEndpoint + '/' + siteId + '?apikey=' + apikey + '&sig=' + hash(apikey, secret)
-    response = requests.post(url, headers=headers, data=payload)
+    def get(self, site_id, apikey, secret, resource, params):
+        resourceEndpoint = '/v2/rest'
+        url = str(self.protocol) + '://' + str(self.api_host) + resourceEndpoint + '/' + str(site_id) + resource + '?apikey=' + apikey + '&sig=' + self.hash(apikey, secret) + params
+        response = requests.get(url)
+        if (response.status_code == 200):
+            return response.json()
+        else:
+            return None
+
+    def post(self, site_id, apikey, secret, payload):
+        resourceEndpoint = '/v2/json-rpc'
+        headers = {"Content-type": "application/json"}
+        url = str(self.protocol) + '://' + str(self.api_host) + resourceEndpoint + '/' + str(site_id) + '?apikey=' + apikey + '&sig=' + self.hash(apikey, secret)
+        response = requests.post(url, headers=headers, data=payload)
     
-    if (response.status_code == 200):
-      return response.json()
-    else:
-      raise ValueError(response.json()['error']) 
+        if (response.status_code == 200):
+          return response.json()
+        else:
+          raise ValueError(response.json()['error']) 
 
-def hash(apikey, secret):
-    authHash = hashlib.md5();
-    temp = str.encode(apikey + secret + repr(int(time.time())))
-    authHash.update(temp)
-    return authHash.hexdigest()
+    def hash(self, apikey, secret):
+        authHash = hashlib.md5();
+        temp = str.encode(str(apikey) + str(secret) + repr(int(time.time())))
+        authHash.update(temp)
+        return authHash.hexdigest()

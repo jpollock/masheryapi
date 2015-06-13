@@ -4,7 +4,37 @@
     * git checkout packager_migration
 * PYTHONPATH=$PYTHONPATH:\<path to checked out repo>/masheryapi/python/lib/api:\<path to checked out repo>/masheryapi/python/lib/services
 * Make a directory for key backup and note location
-* 
+    * key_backup in same dir as checkout
+    * log in same dir as checkout
+    * test_data in same dir as checkout
+* Make a environment json
+
+````
+ {
+    "mashery_api": {
+        "protocol": "http",
+        "hostname": "api.example.com",
+        "apikey": "<insert your key>",
+        "secret": "<insert your secret>"
+ 
+    },
+    "mashery_area": {
+        "id": 47404,
+        "name": "Test3"
+
+    },
+    "migration": {
+        "member_email": "jpollock@mashery.com",
+        "new_member_string": "memberless",
+        "backup_location": "/Users/jppolloc/code/GitHubRepositories/masheryapi/python/administration/migration/packager/key_backup/",
+        "log_location": "/Users/jppolloc/code/GitHubRepositories/masheryapi/python/administration/migration/packager/log/",
+        "key_input_file": "/Users/jppolloc/code/GitHubRepositories/masheryapi/python/administration/migration/packager/test_data/keys_to_migrate.json"
+    }
+
+
+}
+````
+    
 
 # Usage
 
@@ -13,28 +43,39 @@ cd to <path to checked out repo>/masheryapi/python/administration/migration/pack
 1. python prepareServiceKeysForMigration.py
 
     usage: prepareServiceKeysForMigration.py [-h]
-                                         apikey secret site\_id member_email
+                                         --nodryrun
 
-    member_email is the email address to use for members created for memberless keys
+       --nodryrun leave off if you want to not create but see what would be created. add if you want to create the data
     
     Example:
-    python prepareServiceKeysForMigration.py mymasherykey mymasherysecret 99999 jpollock@mashery.com
+    python prepareServiceKeysForMigration.py --nodryrun
 
 2. python getServiceKeysToMigrate.py
 
-    usage: getServiceKeysToMigrate.py [-h] apikey secret site_id output
-    
+    usage: getServiceKeysToMigrate.py [-h]
+        
     Example:
     
-     python getServiceKeysToMigrate.py mymasherykey mymasherysecret 99999 /users/jppolloc/somefile.json
+     python getServiceKeysToMigrate.py 
      
 3. python migrateServiceKeyToPackageKey.py
 
-    usage: migrateServiceKeyToPackageKey.py [-h] [--nodryrun] apikey secret site\_id backup\_location migration\_map_location
+    usage: migrateServiceKeyToPackageKey.py [-h] [--nodryrun] 
     
     Example: 
 
-	python migrateServiceKeyToPackageKey.py mymasherykey mymasherysecret 99999 /somepath/key_backup/ /somepath/keysToMigrate.json --nodryrun
+	python migrateServiceKeyToPackageKey.py  --nodryrun
 	
 	leave off nodryun if you want a dry run and don't migrate
 	
+	
+# Updated Flow
+
+1. python prepare_service_keys_for_migration.py --nodryrun
+2. python get_service_keys_to_migrate.py
+3. python archive_service_keys.py
+4. python validate_keys.py
+5. python migrate_service_key_to_package_key.py --nodryrun
+6. python validate_keys.py --packagekeys
+7. python restore_service_keys.py --nodryrun
+8. python validate_keys.py
