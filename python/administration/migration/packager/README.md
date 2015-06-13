@@ -1,3 +1,7 @@
+# Requirements
+* Python 2.6+
+* requests Python package (https://pypi.python.org/pypi/requests)
+
 # Setup
 * Checkout repo
     * git clone git@github.com:jpollock/masheryapi.git
