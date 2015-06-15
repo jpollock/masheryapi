@@ -56,7 +56,7 @@ def main(argv):
 
                 key_data_from_backup = validate_applications.get_service_key_from_backup(validate_applications.migration_environment.configuration['migration']['backup_location'], key)
 
-                if (validator.validate_package_key(package_key_data, key_data_from_backup) == False):
+                if (validate_applications.validator.validate_package_key(package_key_data, key_data_from_backup) == False):
                     validate_applications.logger.error('Mismatch:: %s %s', package_key_data['apikey'], package_key_data['application']['name'])
 
             else:
