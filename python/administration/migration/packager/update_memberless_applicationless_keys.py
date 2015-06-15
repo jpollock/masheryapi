@@ -88,7 +88,6 @@ def main(argv):
             update_keys.logger.info('Applicationless key: %s', key['apikey'])
             application_count += 1 # keep track of apps needed to create
             if (nodryrun == True):
-
                 application = {}
                 application['name'] = 'Application for ' + member['username']
                 application['member'] = member
@@ -110,6 +109,16 @@ def main(argv):
                 except ValueError as err:
                     update_keys.logger.error(json.dumps(err.args))
                     return
+        elif (key['application'] != None and memberless == True): # handling memberless keys with applications
+            key['member'] = member
+            try:
+                update_keys.logger.info('Updating key: %s', json.dumps(key))
+                update_keys.base.update('key', key)
+            except ValueError as err:
+                update_keys.logger.error(json.dumps(err.args))
+                return
+
+
 
         # increment counts. key_count is being used to tack how many keys are being added to a member
         key_count = key_count + 1
