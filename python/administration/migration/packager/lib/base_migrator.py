@@ -27,7 +27,7 @@ class BaseMigrator:
         try:
             keys = self.base.fetch('keys', '*, member, application, service, developer_class', '')
         except ValueError as err:
-            base_migrator.logger.error('Error fetching data: %s', json.dumps(err.args))
+            self.logger.error('Error fetching data: %s', json.dumps(err.args))
             return
 
         applications = self.transform_keys_map_to_applications_map(keys)
