@@ -8,7 +8,7 @@ class MigrationEnvironment:
             file_contents = f.read()
             self.configuration = json.loads(file_contents)
             f.close()
-        except IOError:            
+        except IOError:  
             return
         except ValueError:
             return

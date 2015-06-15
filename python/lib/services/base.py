@@ -9,6 +9,18 @@ class Base:
         self.apikey = apikey
         self.secret = secret
 
+
+    def area_fetch(self):
+      try:
+        result = self.masheryV2.post(self.site_id, self.apikey, self.secret, '{"method":"area.fetch","id":1,"params":[]}')
+        return result['result']
+
+      except ValueError as err:
+        raise ValueError(err.args)
+
+      return None
+
+
     def fetch(self, object_type, fields, filter_clause):
       results = []
       try:

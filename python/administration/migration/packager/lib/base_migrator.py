@@ -1,8 +1,62 @@
-import base, logger, json
+import logger, json
+from migration_environment import MigrationEnvironment
+from validator import Validator
+from base import Base
 
 class BaseMigrator:
-    def __init__(self, logger):
-        self.logger = logger
+    def __init__(self,):
+        self.migration_environment = MigrationEnvironment()
+        mashery_api_config = self.migration_environment.configuration
+        self.base = Base(mashery_api_config['mashery_api']['protocol'], mashery_api_config['mashery_api']['hostname'], mashery_api_config['mashery_area']['id'], mashery_api_config['mashery_api']['apikey'], mashery_api_config['mashery_api']['secret'])
+
+        self.logger = logger.setup(self.__class__.__name__, 'log/package_migrator.log')
+
+        self.validator = Validator(self.logger)
+
+
+    def ready_for_migration(self):
+        # fetch area config
+        try:
+            area = self.base.area_fetch()
+        except ValueError as err:
+            self.logger.error('Error fetching data: %s', json.dumps(err.args))
+            return
+
+        # fetch keys in area, to see if there are any existing
+        # memberless or applicationless ones
+        try:
+            keys = self.base.fetch('keys', '*, member, application, service, developer_class', '')
+        except ValueError as err:
+            base_migrator.logger.error('Error fetching data: %s', json.dumps(err.args))
+            return
+
+        applications = self.transform_keys_map_to_applications_map(keys)
+
+        area_validation_data = self.validator.validate_area_for_migration(area, applications, keys)
+
+        self.logger.info('ready_for_migration: %s', json.dumps(area_validation_data))
+
+        return area_validation_data['ready_for_migration']
+
+    def transform_keys_map_to_applications_map(self, keys):
+        applications = {}
+
+        for key in keys:
+            app_id = 0
+            if (key['application'] != None):
+                app_id = key['application']['id']
+
+            application = {}
+            application['keys'] = []
+            
+            if app_id in applications:
+                application = applications[app_id]
+
+            application['keys'].append(key)
+
+            applications[app_id] = application
+
+        return applications
 
     def get_migration_data(self, file):
         try:
@@ -34,7 +88,7 @@ class BaseMigrator:
 
 
     def get_service_key_from_backup(self, backup_location, key): 
-        f = open(backup_location +    str(key['apikey']) + '_' + str(key['service_key']) + '.json', 'r')
+        f = open(backup_location + str(key['apikey']) + '_' + str(key['service_key']) + '.json', 'r')
         file_contents = f.read()
         key_data = json.loads(file_contents)
         f.close()
@@ -45,11 +99,11 @@ class BaseMigrator:
 
         return key_data
 
-    def fetch_key(self, site_id, apikey, secret, key):
+    def fetch_key(self, key):
         key_data = None
         # fetch key data
         try:
-            key_data = base.fetch(site_id, apikey, secret, 'keys', '*, member, application, service, developer_class', 'WHERE apikey = \'' + key['apikey'] + '\' AND service_key = \'' + key['service_key'] + '\'')
+            key_data = self.base.fetch('keys', '*, member, application, service, developer_class', 'WHERE apikey = \'' + key['apikey'] + '\' AND service_key = \'' + key['service_key'] + '\'')
         except ValueError as err:
             self.logger.error('Problem fetching key: %s', json.dumps(err.args))
             return False
@@ -60,3 +114,23 @@ class BaseMigrator:
             self.logger.error('Problem fetching key for %s', json.dumps(application))
         
         return key_data
+
+
+    def fetch_application(self, application):
+        application_data = None
+        if (application['id'] != ''):
+            try:
+                # get the application from the database
+                application_data = self.base.fetch('applications', '*, keys.*, keys.member, keys.service, keys.developer_class', 'WHERE id = ' + str(application['id']))
+            except ValueError as err:
+                self.logger.error('Problem fetching application: %s', json.dumps(err.args))
+
+            if (len(application_data) == 1):
+                application_data = application_data[0]
+            else:
+                base_migrator.logger.error('Problem fetching application for %s', json.dumps(application))
+
+            if (len(application['keys']) != len(application_data['keys'])):
+                self.logger.error('Application data missing keys %s', json.dumps(application))
+
+        return application_data
