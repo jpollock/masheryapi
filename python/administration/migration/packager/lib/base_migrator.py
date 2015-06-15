@@ -128,7 +128,7 @@ class BaseMigrator:
             if (len(application_data) == 1):
                 application_data = application_data[0]
             else:
-                base_migrator.logger.error('Problem fetching application for %s', json.dumps(application))
+                self.logger.error('Problem fetching application for %s', json.dumps(application))
 
             if (len(application['keys']) != len(application_data['keys'])):
                 self.logger.error('Application data missing keys %s', json.dumps(application))
