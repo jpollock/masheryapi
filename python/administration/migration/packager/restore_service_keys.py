@@ -15,7 +15,7 @@ def main(argv):
     if (restore_keys.migration_environment.valid() == False):
         print 'Migration Environment not setup properly.'
         return
-
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('--nodryrun', action='store_true', default=False, help='specify to perform work, leave off command for dry run')
 
@@ -53,7 +53,6 @@ def main(argv):
 
             key_data = restore_keys.get_service_key_from_backup(restore_keys.migration_environment.configuration['migration']['backup_location'], key)
             keys_to_restore.append(key_data)
-            #loggerMigrator.info('Migration readiness for %s ::: %s', json.dumps(key_data), json.dumps(ready_data))
 
         # before enabling app for packager we must delete and archive all keys
         if (nodryrun == True):
@@ -75,7 +74,12 @@ def main(argv):
 
             for key in keys_to_restore:
                 try:
-                    restore_keys.base.create('key', key)
+                    restored_key = restore_keys.base.create('key', key)
+                    # make sure the data is really restored, including "status" - that often gets 
+                    # screwed up due to deleted keys counting against limits
+                    backup_key = restore_keys.get_service_key_from_backup(restore_keys.migration_environment.configuration['migration']['backup_location'], key)
+                    if (restore_keys.validator.validate_service_key(restored_key, backup_key) == False):
+                        restore_keys.base.update('key', backup_key)
                 except ValueError as err:
                     restore_keys.logger.error('Problem creating keys: %s', json.dumps(err.args))
 

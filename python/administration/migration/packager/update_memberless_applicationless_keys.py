@@ -7,10 +7,10 @@ class UpdateMemberlessApplicationlessKeys(BaseMigrator):
 
     def random_password(self):
         # generate a random string for password for new member create
-        length = 13
+        length = 12
         chars = string.ascii_letters + string.digits
         random.seed = (os.urandom(1024))
-        return ''.join(random.choice(chars) for i in range(length))
+        return str(random.randint(0,9)) + (''.join(random.choice(chars) for i in range(length)))
 
     def get_member_for_memberless_key(self, username, member_email, nodryrun):
         member = {}

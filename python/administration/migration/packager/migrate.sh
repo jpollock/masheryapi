@@ -9,9 +9,5 @@ echo 'Validating Archived Copies'
 python validate_applications.py
 echo 'Migrating'
 python migrate_service_keys_to_package_keys.py --nodryrun
-echo 'Validating Migration'
+echo 'Validating Packaged Keys'
 python validate_applications.py --packagekeys
-echo 'Restoring Service Keys'
-python restore_service_keys.py --nodryrun
-echo 'Validating Restored Keys'
-python validate_applications.py

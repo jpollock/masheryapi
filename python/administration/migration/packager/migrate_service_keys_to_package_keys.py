@@ -200,7 +200,20 @@ def main(argv):
                 return 
 
             try:                  
-                migrate_keys.base.create('package_key', package_keys_to_create)
+                created_package_keys = migrate_keys.base.create('package_key', package_keys_to_create)
+                for created_package_key in created_package_keys['result']:
+                    status_not_right = False
+                    for key in application['keys']:
+                        # make sure the data is really restored, including "status" - that often gets 
+                        # screwed up due to deleted keys counting against limits
+                        backup_key = migrate_keys.get_service_key_from_backup(migrate_keys.migration_environment.configuration['migration']['backup_location'], key)
+                        if (created_package_key['status'] != backup_key['status']):
+                            status_not_right = True
+                            created_package_key['status'] = backup_key['status']
+
+                    if (status_not_right == True):
+                        migrate_keys.base.update('package_key', created_package_key)
+
             except ValueError as err:
                 migrate_keys.logger.error('Problem creating package key: %s', json.dumps(err.args))
                 return 
