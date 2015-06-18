@@ -33,7 +33,7 @@ def main(argv):
 
     for key_data in keys_to_create:
         count = 0
-        while (count < 50):
+        while (count < 40):
             application_to_create = {}
             member = members[random.randint(0,len(members)-1)]
 

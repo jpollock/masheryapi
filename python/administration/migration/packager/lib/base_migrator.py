@@ -9,7 +9,7 @@ class BaseMigrator:
         mashery_api_config = self.migration_environment.configuration
         self.base = Base(mashery_api_config['mashery_api']['protocol'], mashery_api_config['mashery_api']['hostname'], mashery_api_config['mashery_area']['id'], mashery_api_config['mashery_api']['apikey'], mashery_api_config['mashery_api']['secret'])
 
-        self.logger = logger.setup(self.__class__.__name__, 'log/package_migrator.log')
+        self.logger = logger.setup(self.__class__.__name__, mashery_api_config['migration']['log_location']  + 'package_migrator.log')
 
         self.validator = Validator(self.logger)
 
@@ -88,14 +88,18 @@ class BaseMigrator:
 
 
     def get_service_key_from_backup(self, backup_location, key): 
-        f = open(backup_location + str(key['apikey']) + '_' + str(key['service_key']) + '.json', 'r')
-        file_contents = f.read()
-        key_data = json.loads(file_contents)
-        f.close()
-
-        if (key_data == None):
-            print 'Key archive file not found.'
-            return
+        key_data = None
+        try:
+            f = open(backup_location + str(key['apikey']) + '_' + str(key['service_key']) + '.json', 'r')
+            file_contents = f.read()
+            key_data = json.loads(file_contents)
+            f.close()
+        except IOError as err:
+            self.logger.error('Problem retrieving backup key: %s', json.dumps(err.args))
+        
+        if (key_data == None or len(key_data) == 0):
+            self.logger.error('Problem retrieving backup key: %s', json.dumps(err.args))
+            return None
 
         return key_data
 

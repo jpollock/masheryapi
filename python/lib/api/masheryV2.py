@@ -1,4 +1,4 @@
-import requests, json, hashlib, time
+import requests, json, hashlib, time, logging
 
 class MasheryV2:
 
@@ -19,12 +19,14 @@ class MasheryV2:
         resourceEndpoint = '/v2/json-rpc'
         headers = {"Content-type": "application/json"}
         url = str(self.protocol) + '://' + str(self.api_host) + resourceEndpoint + '/' + str(site_id) + '?apikey=' + apikey + '&sig=' + self.hash(apikey, secret)
+
         response = requests.post(url, headers=headers, data=payload)
-    
+        resonseJson = response.json()
+
         if (response.status_code == 200):
-          return response.json()
+          return resonseJson
         else:
-          raise ValueError(response.json()['error']) 
+          raise ValueError(resonseJson['error']) 
 
     def hash(self, apikey, secret):
         authHash = hashlib.md5();

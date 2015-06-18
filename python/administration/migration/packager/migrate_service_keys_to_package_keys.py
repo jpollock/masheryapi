@@ -54,6 +54,10 @@ class MigrateServiceKeysToPackageKeys(BaseMigrator):
         package_set = []
         plan_set = []
         for key in application['keys']:
+            if ('package_id' not in key or 'plan_id' not in key):
+                self.logger.warn('Application %s has keys without package plan', str(application_data['id']))
+                return False
+
             if (key['apikey'] not in key_set):
                 key_set.append(key['apikey'])
             if (key['package_id'] not in package_set):
@@ -180,7 +184,8 @@ def main(argv):
         application_data = migrate_keys.fetch_application(application)
 
         if (migrate_keys.application_ready_to_be_migrated(application, application_data, apis, packages) == False):
-          return False
+            migrate_keys.logger.warn('Application not ready for migration: %s', json.dumps(application_data))
+            continue
 
         keys_to_delete = application['keys'] # list of keys to delete
         package_keys_to_create =  migrate_keys.get_package_keys_to_create(application, application_data, apis, packages) # list of package keys to create
