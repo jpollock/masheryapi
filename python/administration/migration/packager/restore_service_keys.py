@@ -39,6 +39,10 @@ def main(argv):
         keys_to_restore = []
         package_key_data = None
         for key in application['keys']:
+            if ('package_id' not in key or 'plan_id' not in key):
+                restore_keys.logger.warn('Application %s has keys without package plan', str(application_data['id']))
+                continue
+
             # fetch key data
             package_keys = restore_keys.base.fetch('package_keys', '*, member, application, package, plan', 'WHERE apikey = \'' + key['apikey'] + '\'')
             for data in package_keys:
@@ -48,11 +52,15 @@ def main(argv):
 
             if (package_key_data != None):
                 package_keys_to_delete.append(package_key_data)
+                key_data = restore_keys.get_service_key_from_backup(restore_keys.migration_environment.configuration['migration']['backup_location'], key)
+                if (key_data == None):
+                    key_data = restore_keys.fetch_key(key)
+
+                keys_to_restore.append(key_data)
+
             else:
                 restore_keys.logger.error('Problem fetching packager key for %s', json.dumps(application))
 
-            key_data = restore_keys.get_service_key_from_backup(restore_keys.migration_environment.configuration['migration']['backup_location'], key)
-            keys_to_restore.append(key_data)
 
         # before enabling app for packager we must delete and archive all keys
         if (nodryrun == True):
@@ -74,10 +82,14 @@ def main(argv):
 
             for key in keys_to_restore:
                 try:
+                    print key
                     restored_key = restore_keys.base.create('key', key)
                     # make sure the data is really restored, including "status" - that often gets 
                     # screwed up due to deleted keys counting against limits
                     backup_key = restore_keys.get_service_key_from_backup(restore_keys.migration_environment.configuration['migration']['backup_location'], key)
+                    if (backup_key == None):
+                        backup_key = restore_keys.fetch_key(key)
+
                     if (restore_keys.validator.validate_service_key(restored_key, backup_key) == False):
                         restore_keys.base.update('key', backup_key)
                 except ValueError as err:

@@ -17,9 +17,8 @@ class GetServiceKeysToMigrate(BaseMigrator):
                 for plan_service in plan['plan_services']:
                     for api in apis:
                       if (api['service_key'] == plan_service['service_definition']['service_key']):
-                          if (key['developer_class'] == None or (key['developer_class'] != None and plan['name'] == key['developer_class']['name'])):
-                              matchCt += 1
-
+                        if (key['developer_class'] == None or (key['developer_class'] != None and plan['name'] == key['developer_class']['name'])):
+                            matchCt += 1
 
                 if (matchCt == len(plan['plan_services'])):
                     key_to_migrate['package_id'] = plan['package']['id']
@@ -54,8 +53,9 @@ def main(argv):
     try:
         apis = get_keys_to_migrate.base.fetch('service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
         plans = get_keys_to_migrate.base.fetch('plans', '*, package, plan_services.service_definition', '')
+        #applications = get_keys_to_migrate.base.fetch('applications', '*, keys, keys.developer_class', 'where name = \'key_with_app_with_member\'')
         applications = get_keys_to_migrate.base.fetch('applications', '*, keys, keys.developer_class', '')
-        keys = get_keys_to_migrate.base.fetch('keys', '*, member, application', '')
+        #keys = get_keys_to_migrate.base.fetch('keys', '*, member, application', '')
     except ValueError as err:
         base_migrator.logger.error('Error fetching data: %s', json.dumps(err.args))
         return
