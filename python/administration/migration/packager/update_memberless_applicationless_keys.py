@@ -53,10 +53,12 @@ def main(argv):
 
     args = parser.parse_args()
     nodryrun = args.nodryrun
-
+    print nodryrun
     # fetch all of the keys in the area
     try:
         keys = update_keys.base.fetch('keys', '*, member, application', '')
+        member_schema = update_keys.base.object_describe('member')
+        application_schema = update_keys.base.object_describe('application')
     except ValueError as err:
         update_keys.logger.error('Error fetching data: %s', json.dumps(err.args))
         return
@@ -64,10 +66,12 @@ def main(argv):
     key_count = 1
     member_count = 1
     application_count = 0
-    memberless = False
+    
+
 
     # for each key, we're looking for memberless and applicationless one
     for key in keys:
+        memberless = False
         member = None # keep this around in case we need it for applicationless keys
         if (key['member'] == None):
             # MEMBERLESS KEY
@@ -87,18 +91,28 @@ def main(argv):
         if (key['application'] == None):
             update_keys.logger.info('Applicationless key: %s', key['apikey'])
             application_count += 1 # keep track of apps needed to create
+
+            application = {}
+            application['name'] = 'Application for ' + member['username']
+            application['member'] = member
+            
+
             if (nodryrun == True):
-                application = {}
-                application['name'] = 'Application for ' + member['username']
-                application['member'] = member
 
                 try:
                     update_keys.logger.info('Creating Application: %s', json.dumps(application))
                     application = update_keys.base.create('application', application)
 
                 except ValueError as err:
-                    update_keys.logger.error(json.dumps(err.args))
-                    return
+                    if (err.args[0][0]['message'] == 'Invalid Object'):
+                        application = update_keys.update_object_with_required_attributes(application, err.args[0][0]['data'])
+                        try:
+                            application = update_keys.base.create('application', application)
+                        except ValueError as err:
+                            update_keys.logger.error(json.dumps(err.args))
+                    else:
+                        update_keys.logger.error(json.dumps(err.args))
+                        return
 
                 key['application'] = application['result']
                 key['member'] = member
@@ -110,13 +124,15 @@ def main(argv):
                     update_keys.logger.error(json.dumps(err.args))
                     return
         elif (key['application'] != None and memberless == True): # handling memberless keys with applications
-            key['member'] = member
-            try:
-                update_keys.logger.info('Updating key: %s', json.dumps(key))
-                update_keys.base.update('key', key)
-            except ValueError as err:
-                update_keys.logger.error(json.dumps(err.args))
-                return
+            
+            if (nodryrun == True):
+                key['member'] = member
+                try:
+                    update_keys.logger.info('Updating key: %s', json.dumps(key))
+                    update_keys.base.update('key', key)
+                except ValueError as err:
+                    update_keys.logger.error(json.dumps(err.args))
+                    return
 
 
 

@@ -34,10 +34,11 @@ def main(argv):
             if (packagekeys == True):
                 if (application_data['is_packaged'] == False):
                     validate_applications.logger.error('Expecting packaged application for %s', json.dumps(application))
+                    continue
             else:
                 if (application_data['is_packaged'] == True):
                     validate_applications.logger.error('Expecting non-packaged application for %s', json.dumps(application))
-
+                    continue
 
         for key in application['keys']:
             if (packagekeys == True):

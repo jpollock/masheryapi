@@ -27,73 +27,8 @@ def main(argv):
         return
 
     for application in migration_data:
-        if (application['id'] != ''):
-            application_data = restore_keys.base.fetch('applications', '*, package_keys', 'WHERE id = ' + str(application['id']))
-            if (len(application_data) == 1):
-                application_data = application_data[0]
-            else:
-                restore_keys.logger.error('Problem fetching application for %s', json.dumps(application))
-                continue
-
-        package_keys_to_delete = []
-        keys_to_restore = []
-        package_key_data = None
-        for key in application['keys']:
-            if ('package_id' not in key or 'plan_id' not in key):
-                restore_keys.logger.warn('Application %s has keys without package plan', str(application_data['id']))
-                continue
-
-            # fetch key data
-            package_keys = restore_keys.base.fetch('package_keys', '*, member, application, package, plan', 'WHERE apikey = \'' + key['apikey'] + '\'')
-            for data in package_keys:
-                if (data['package']['id'] == key['package_id'] and data['plan']['id'] == key['plan_id']):
-                    package_key_data = data
-                    break
-
-            if (package_key_data != None):
-                package_keys_to_delete.append(package_key_data)
-                key_data = restore_keys.get_service_key_from_backup(restore_keys.migration_environment.configuration['migration']['backup_location'], key)
-                if (key_data == None):
-                    key_data = restore_keys.fetch_key(key)
-
-                keys_to_restore.append(key_data)
-
-            else:
-                restore_keys.logger.error('Problem fetching packager key for %s', json.dumps(application))
-
-
-        # before enabling app for packager we must delete and archive all keys
-        if (nodryrun == True):
-            try:
-                t_del = []
-                for k in package_keys_to_delete:
-                    t_del.append(k['id'])
-
-                if (len(t_del) > 0):
-                  restore_keys.base.delete('package_key', t_del) 
-            except ValueError as err:
-                restore_keys.logger.error('Problem deleting keys: %s', json.dumps(err.args)) 
-
-            application_data['is_packaged'] = False
-            try:
-                restore_keys.base.update('application', application_data)
-            except ValueError as err:
-                restore_keys.logger.error('Problem deleting keys: %s', json.dumps(err.args))
-
-            for key in keys_to_restore:
-                try:
-                    print key
-                    restored_key = restore_keys.base.create('key', key)
-                    # make sure the data is really restored, including "status" - that often gets 
-                    # screwed up due to deleted keys counting against limits
-                    backup_key = restore_keys.get_service_key_from_backup(restore_keys.migration_environment.configuration['migration']['backup_location'], key)
-                    if (backup_key == None):
-                        backup_key = restore_keys.fetch_key(key)
-
-                    if (restore_keys.validator.validate_service_key(restored_key, backup_key) == False):
-                        restore_keys.base.update('key', backup_key)
-                except ValueError as err:
-                    restore_keys.logger.error('Problem creating keys: %s', json.dumps(err.args))
+        if restore_keys.restore_application(application, nodryrun) == False:
+            continue
 
 
 if __name__ == "__main__":

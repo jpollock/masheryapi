@@ -17,21 +17,36 @@ class Validator:
         return True
 
     def validate_package_key(self, package_key_data, key_data_from_backup):
+        valid = True
         for val in package_key_data:
-            if (val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application' or val == 'package' or val == 'plan' or val == 'service'):
+            if (val == 'object_type' or val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application' or val == 'package' or val == 'plan' or val == 'service'):
                 continue
 
+            
             n_val = package_key_data[val]
             if val in key_data_from_backup:
                 o_val = key_data_from_backup[val]
-                if (n_val != o_val):
-                    #print val + ' ' + str(o_val) + ' ' + str(n_val)
-                    self.logger.error('Package Key Mismatch : %s : %s %s', val, o_val, n_val)
-                    return False
-            else:
-                return False
+                if (val == 'limits'):
+                    for n_limit in n_val:
+                        n_period = n_limit['period']
+                        n_ceiling = n_limit['ceiling']
+                        for o_limit in o_val:
+                            o_period = o_limit['period']
+                            if n_period == o_period:
+                                o_ceiling = o_limit['ceiling']
+                                if n_ceiling != o_ceiling:
+                                    self.logger.error('Package Key Mismatch : %s : %s %s', val, o_val, n_val)
+                                    valid = False
 
-        return True
+                else:
+                    if (n_val != o_val):
+                        #print val + ' ' + str(o_val) + ' ' + str(n_val)
+                        self.logger.error('Package Key Mismatch : %s : %s %s', val, o_val, n_val)
+                        valid = False
+            else:
+                valid = False
+
+        return valid
 
 
     def validate_service_key(self, key_data, key_data_from_backup):

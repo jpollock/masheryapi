@@ -20,6 +20,15 @@ class Base:
 
       return None
 
+    def object_describe(self, object_type):
+      try:
+        result = self.masheryV2.post(self.site_id, self.apikey, self.secret, '{"method":"object.describe","id":1,"params":[["'+object_type+'"]]}')
+        return result['result']
+
+      except ValueError as err:
+        raise ValueError(err.args)
+
+      return None
 
     def fetch(self, object_type, fields, filter_clause):
       results = []
