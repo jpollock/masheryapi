@@ -1,4 +1,4 @@
-import os, sys, urllib, argparse, time, requests, json, logging, random, string
+import os, sys, urllib, argparse, time, requests, json, logging, random, string, csv
 from lib.base_migrator import BaseMigrator
 
 class GetServiceKeysToMigrate(BaseMigrator):
@@ -17,7 +17,7 @@ class GetServiceKeysToMigrate(BaseMigrator):
                 for plan_service in plan['plan_services']:
                     for api in apis:
                       if (api['service_key'] == plan_service['service_definition']['service_key']):
-                        if (key['developer_class'] == None or (key['developer_class'] != None and plan['name'] == key['developer_class']['name'])):
+                        if ((key['developer_class'] == None and 'Developer Class' not in plan['name'] )  or (key['developer_class'] != None and plan['name'] == key['developer_class']['name'])):
                             matchCt += 1
 
                 if (matchCt == len(plan['plan_services'])):
@@ -46,25 +46,52 @@ def main(argv):
         return
 
     if (get_keys_to_migrate.ready_for_migration() == False):
-        archive_keys.logger.error('Not ready for migration')
+        get_keys_to_migrate.logger.error('Not ready for migration')
         return    
 
     # fetch data necessary for the rest of the script
     try:
         apis = get_keys_to_migrate.base.fetch('service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
         plans = get_keys_to_migrate.base.fetch('plans', '*, package, plan_services.service_definition', '')
-        #applications = get_keys_to_migrate.base.fetch('applications', '*, keys, keys.developer_class', 'where name = \'key_with_app_with_member\'')
         applications = get_keys_to_migrate.base.fetch('applications', '*, keys, keys.developer_class', '')
-        #keys = get_keys_to_migrate.base.fetch('keys', '*, member, application', '')
     except ValueError as err:
-        base_migrator.logger.error('Error fetching data: %s', json.dumps(err.args))
+        get_keys_to_migrate.logger.error('Error fetching data: %s', json.dumps(err.args))
         return
+
+    applications_from_csv = {}
+    #with open('/Users/jppolloc/code/GitHubRepositories/masheryapi/python/administration/inactive_applications_and_keys.csv') as csvfile:
+    with open('/Users/jppolloc/Downloads/last_24_hours_solutions_4.csv') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            application = {}
+            if row['application_id'] in applications_from_csv:
+                application = applications_from_csv[row['application_id']]
+
+            key = {}
+            key['apikey'] = row['apikey']
+            key['service_key'] = row['service_key']
+            #key['package_id'] = row['package_id']
+            #key['plan_id'] = row['plan_id']
+
+            keys = []
+            if ('keys' in application):
+                keys = application['keys']
+
+            keys.append(key)
+
+            application['keys'] = keys
+
+            applications_from_csv[row['application_id']] = application
+
 
     applications_to_migrate = []
     for application in applications:
         if (application['is_packaged'] == True):
             continue
-    
+
+        if str(application['id']) not in applications_from_csv:
+            continue
+
         consolidate = get_keys_to_migrate.application_should_be_consolidated(application)
         
         application_to_migrate = {}

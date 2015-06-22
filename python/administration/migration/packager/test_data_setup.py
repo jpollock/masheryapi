@@ -8,13 +8,17 @@ def main(argv):
         print 'Migration Environment not setup properly.'
         return
 
+
     mashery_api_config = migration_environment.configuration
+    if (mashery_api_config['mashery_area']['name'] != 'Test3' and mashery_api_config['mashery_area']['name'] != 'Pmtester'):
+        print 'Cannot setup test data in this area.'
+        return
+
     global base
     base = Base(mashery_api_config['mashery_api']['protocol'], mashery_api_config['mashery_api']['hostname'], mashery_api_config['mashery_area']['id'], mashery_api_config['mashery_api']['apikey'], mashery_api_config['mashery_api']['secret'])
 
     apis = base.fetch('service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
     packages = base.fetch('packages', '*, plans', '')
-
 
     applications = base.fetch('applications', '*', '')
     for application in applications:
@@ -33,7 +37,7 @@ def main(argv):
 
     for key_data in keys_to_create:
         count = 0
-        while (count < 40):
+        while (count < 3):
             application_to_create = {}
             member = members[random.randint(0,len(members)-1)]
 
@@ -49,13 +53,15 @@ def main(argv):
                 key_to_create['secret'] = key_data['secret']
                 key_to_create['service'] = api
 
-                developer_class = api['service']['service_classes'][rnd_dev]['developer_class']
+                developer_class = None
+                if (len(api['service']['service_classes']) > 0):
+                    developer_class = api['service']['service_classes'][rnd_dev]['developer_class']
 
                 if (key_data['memberless'] == False):
                         key_to_create['member'] = member
                 if (key_data['applicationless'] == False):
                         key_to_create['application'] = created_application['result']
-                if (key_data['developerclass'] == True):
+                if (developer_class != None and key_data['developerclass'] == True):
                         key_to_create['developer_class'] = developer_class
 
                 if (key_data['customlimits'] == True):

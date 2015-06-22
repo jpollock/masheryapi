@@ -161,6 +161,8 @@ def main(argv):
     args = parser.parse_args()
     nodryrun = args.nodryrun
 
+    print nodryrun
+
     # get the input file, containing a json representation
     # of apps to archive
     migration_data = migrate_keys.get_migration_data(migrate_keys.migration_environment.configuration['migration']['key_input_file'])
@@ -179,6 +181,7 @@ def main(argv):
 
     # process each application to see if it is ready to go
     for application in migration_data:
+        migrate_keys.logger.info('Processing application: %s', str(application['id']))
         ready = True
 
         application_data = migrate_keys.fetch_application(application)
@@ -188,20 +191,30 @@ def main(argv):
             continue
 
         keys_to_delete = application['keys'] # list of keys to delete
+        migrate_keys.logger.info('Service Keys to delete: %s', json.dumps(keys_to_delete))
         package_keys_to_create =  migrate_keys.get_package_keys_to_create(application, application_data, apis, packages) # list of package keys to create
-        
+        migrate_keys.logger.info('Package Keys to create: %s', json.dumps(package_keys_to_create))
+
         if (nodryrun == True):
             try:
                 migrate_keys.base.delete('key', keys_to_delete) 
             except ValueError as err:
-                migrate_keys.logger.error('Problem deleting keys: %s', json.dumps(err.args))
+                migrate_keys.logger.error('Problem deleting keys: %s %s', str(application_data['id']), json.dumps(err.args))
+                if migrate_keys.restore_application(application, nodryrun) == False:
+                    migrate_keys.logger.error('Failed rollback')
+                else:
+                    migrate_keys.logger.error('Successful rollback')
                 return 
 
             application_data['is_packaged'] = True
             try:
                 migrate_keys.base.update('application', application_data)
             except ValueError as err:
-                migrate_keys.logger.error('Problem updating application: %s', json.dumps(err.args))
+                migrate_keys.logger.error('Problem updating application: %s %s', str(application_data['id']), json.dumps(err.args))
+                if migrate_keys.restore_application(application, nodryrun) == False:
+                    migrate_keys.logger.error('Failed rollback')
+                else:
+                    migrate_keys.logger.error('Successful rollback')
                 return 
 
             try:                  
@@ -221,6 +234,10 @@ def main(argv):
 
             except ValueError as err:
                 migrate_keys.logger.error('Problem creating package key: %s', json.dumps(err.args))
+                if migrate_keys.restore_application(application, nodryrun) == False:
+                    migrate_keys.logger.error('Failed rollback')
+                else:
+                    migrate_keys.logger.error('Successful rollback')
                 return 
 
 if __name__ == "__main__":

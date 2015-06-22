@@ -14,6 +14,13 @@ class BaseMigrator:
         self.validator = Validator(self.logger)
 
 
+    def update_object_with_required_attributes(self, object_to_update, missing_properties):
+        for missing_property in missing_properties:
+            object_to_update[missing_property['field']] = 'default'
+        
+        return object_to_update
+    
+
     def ready_for_migration(self):
         # fetch area config
         try:
@@ -85,6 +92,88 @@ class BaseMigrator:
             return True
 
         return False
+
+    def restore_application(self, application, nodryrun):
+        
+        if (application['id'] != ''):
+            application_data = self.base.fetch('applications', '*, package_keys', 'WHERE id = ' + str(application['id']))
+            if (len(application_data) == 1):
+                application_data = application_data[0]
+            else:
+                self.logger.error('Problem fetching application for %s', json.dumps(application))
+                return False
+
+        package_keys_to_delete = []
+        keys_to_restore = []
+        package_key_data = None
+        for key in application['keys']:
+            if ('package_id' not in key or 'plan_id' not in key):
+                self.logger.warn('Application %s has keys without package plan', str(application_data['id']))
+                continue
+
+            # fetch key data
+            package_keys = self.base.fetch('package_keys', '*, member, application, package, plan', 'WHERE apikey = \'' + key['apikey'] + '\'')
+            for data in package_keys:
+                if (data['package']['id'] == key['package_id'] and data['plan']['id'] == key['plan_id']):
+                    package_key_data = data
+                    break
+
+            if (package_key_data != None):
+                package_keys_to_delete.append(package_key_data)
+            
+            key_data = self.get_service_key_from_backup(self.migration_environment.configuration['migration']['backup_location'], key)
+            if (key_data == None):
+                key_data = self.fetch_key(key)        
+                if key_data == None:                    
+                    self.logger.error('Problem fetching service key for %s', json.dumps(application))
+                    return False
+            keys_to_restore.append(key_data)
+
+        # before enabling app for packager we must delete and archive all keys
+        if (nodryrun == True):
+            try:
+                t_del = []
+                for k in package_keys_to_delete:
+                    t_del.append(k['id'])
+
+                if (len(t_del) > 0):
+                  self.base.delete('package_key', t_del) 
+            except ValueError as err:
+                self.logger.error('Problem deleting package keys: %s', json.dumps(err.args)) 
+                return False
+
+            application_data['is_packaged'] = False
+            try:
+                self.base.update('application', application_data)
+            except ValueError as err:
+                if (err.args[0][0]['message'] == 'Invalid Object'):
+                    application_data = self.update_object_with_required_attributes(application_data, err.args[0][0]['data'])
+                    try:
+                        application = self.base.update('application', application_data)
+                    except ValueError as err:
+                        self.logger.error(json.dumps(err.args))
+                        return False
+                else:
+                    self.logger.error(json.dumps(err.args))
+                    return False
+
+            for key in keys_to_restore:
+                try:
+                    restored_key = self.base.create('key', key)
+                    # make sure the data is really restored, including "status" - that often gets 
+                    # screwed up due to deleted keys counting against limits
+                    backup_key = self.get_service_key_from_backup(self.migration_environment.configuration['migration']['backup_location'], key)
+                    if (backup_key == None):
+                        backup_key = self.fetch_key(key)
+
+                    if (self.validator.validate_service_key(restored_key, backup_key) == False):
+                        self.base.update('key', backup_key)
+                except ValueError as err:
+                    self.logger.error('Problem creating keys: %s', json.dumps(err.args))
+                    return False
+
+        return True
+
 
 
     def get_service_key_from_backup(self, backup_location, key): 
