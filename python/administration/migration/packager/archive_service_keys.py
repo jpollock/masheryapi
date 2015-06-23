@@ -26,6 +26,9 @@ def main(argv):
         archive_keys.logger.error('Not ready for migration')
         return
 
+    if (archive_keys.confirm_ready() == False):
+        return
+
     # get the input file, containing a json representation
     # of apps to archive
     migration_data = archive_keys.get_migration_data(archive_keys.migration_environment.configuration['migration']['key_input_file'])

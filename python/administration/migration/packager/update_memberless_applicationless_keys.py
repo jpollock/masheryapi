@@ -47,6 +47,9 @@ def main(argv):
         print 'Migration Environment not setup properly.'
         return
 
+    if (update_keys.confirm_ready() == False):
+        return        
+
     # get arguments passed in from command line
     parser = argparse.ArgumentParser()
     parser.add_argument('--nodryrun', action='store_true', default=False, help='specify to perform work, leave off command for dry run')

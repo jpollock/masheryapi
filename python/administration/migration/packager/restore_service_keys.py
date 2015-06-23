@@ -15,6 +15,9 @@ def main(argv):
     if (restore_keys.migration_environment.valid() == False):
         print 'Migration Environment not setup properly.'
         return
+
+    if (restore_keys.confirm_ready() == False):
+        return        
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--nodryrun', action='store_true', default=False, help='specify to perform work, leave off command for dry run')

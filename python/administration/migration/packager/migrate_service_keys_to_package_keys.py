@@ -153,7 +153,10 @@ def main(argv):
 
     if (migrate_keys.ready_for_migration() == False):
         migrate_keys.logger.error('Not ready for migration')
-        return    
+        return
+
+    if (migrate_keys.confirm_ready() == False):
+        return
 
     # get arguments
     parser = argparse.ArgumentParser()
