@@ -8,15 +8,15 @@ class MigrateServiceKeysToPackageKeys(BaseMigrator):
 
     def get_package_plan_for_key(self, packages, key):
         for plan in packages:
-          if (plan['id'] == key['plan_id'] and plan['package']['id'] == key['package_id']):
-            return plan
+            if (plan['id'] == key['plan_id'] and plan['package']['id'] == key['package_id']):
+                return plan
 
         return None
 
     def get_api_for_key(self, apis, key_data):
         for api in apis:
-          if (api['service_key'] == key_data['service_key']):
-            return api
+            if (api['service_key'] == key_data['service_key']):
+                return api
 
         return None
 
