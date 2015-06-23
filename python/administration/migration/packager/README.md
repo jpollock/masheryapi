@@ -75,7 +75,7 @@ cd to <path to checked out repo>/masheryapi/python/administration/migration/pack
 	
 # Updated Flow
 
-1. python prepare_service_keys_for_migration.py --nodryrun
+1. python update_memberless_applicationless_keys.py --nodryrun
 2. python get_service_keys_to_migrate.py
 3. python archive_service_keys.py
 4. python validate_keys.py
@@ -83,3 +83,5 @@ cd to <path to checked out repo>/masheryapi/python/administration/migration/pack
 6. python validate_keys.py --packagekeys
 7. python restore_service_keys.py --nodryrun
 8. python validate_keys.py
+
+See migrate.sh and restore.sh
