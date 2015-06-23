@@ -12,6 +12,9 @@ def main(argv):
         print 'Migration Environment not setup properly.'
         return
 
+    if (validate_applications.confirm_ready() == False):
+        return                
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--packagekeys', action='store_true', default=False, help='specify to perform work, leave off command for dry run')
 

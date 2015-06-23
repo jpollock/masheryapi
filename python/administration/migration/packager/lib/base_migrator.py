@@ -13,13 +13,22 @@ class BaseMigrator:
 
         self.validator = Validator(self.logger)
 
-
     def update_object_with_required_attributes(self, object_to_update, missing_properties):
         for missing_property in missing_properties:
             object_to_update[missing_property['field']] = 'default'
         
         return object_to_update
     
+    def confirm_ready(self):
+        print '================================================'
+        print 'Area ID= ' + str(self.migration_environment.configuration['mashery_area']['id'])
+        print 'Area Name= ' + self.migration_environment.configuration['mashery_area']['name']
+        print '================================================'
+        proceed = raw_input('Proceed? (y/n)')
+        if proceed == 'y':
+            return True
+
+        return False
 
     def ready_for_migration(self):
         # fetch area config

@@ -49,6 +49,15 @@ def main(argv):
         get_keys_to_migrate.logger.error('Not ready for migration')
         return    
 
+    if (get_keys_to_migrate.confirm_ready() == False):
+        return
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--file_with_keys',  nargs='?', help='file with keys')
+
+    args = parser.parse_args()
+    file_with_keys = args.file_with_keys
+
     # fetch data necessary for the rest of the script
     try:
         apis = get_keys_to_migrate.base.fetch('service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
@@ -59,29 +68,27 @@ def main(argv):
         return
 
     applications_from_csv = {}
-    #with open('/Users/jppolloc/code/GitHubRepositories/masheryapi/python/administration/inactive_applications_and_keys.csv') as csvfile:
-    with open('/Users/jppolloc/Downloads/last_24_hours_solutions_4.csv') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            application = {}
-            if row['application_id'] in applications_from_csv:
-                application = applications_from_csv[row['application_id']]
+    if (file_with_keys != None):
+        with open(file_with_keys) as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                application = {}
+                if row['application_id'] in applications_from_csv:
+                    application = applications_from_csv[row['application_id']]
 
-            key = {}
-            key['apikey'] = row['apikey']
-            key['service_key'] = row['service_key']
-            #key['package_id'] = row['package_id']
-            #key['plan_id'] = row['plan_id']
+                key = {}
+                key['apikey'] = row['apikey']
+                key['service_key'] = row['service_key']
 
-            keys = []
-            if ('keys' in application):
-                keys = application['keys']
+                keys = []
+                if ('keys' in application):
+                    keys = application['keys']
 
-            keys.append(key)
+                keys.append(key)
 
-            application['keys'] = keys
+                application['keys'] = keys
 
-            applications_from_csv[row['application_id']] = application
+                applications_from_csv[row['application_id']] = application
 
 
     applications_to_migrate = []
@@ -89,7 +96,7 @@ def main(argv):
         if (application['is_packaged'] == True):
             continue
 
-        if str(application['id']) not in applications_from_csv:
+        if len(applications_from_csv) > 0 and str(application['id']) not in applications_from_csv:
             continue
 
         consolidate = get_keys_to_migrate.application_should_be_consolidated(application)
