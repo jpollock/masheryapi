@@ -16,9 +16,9 @@ class GetServiceKeysToMigrate(BaseMigrator):
                 matchCt = 0
                 for plan_service in plan['plan_services']:
                     for api in apis:
-                      if (api['service_key'] == plan_service['service_definition']['service_key']):
-                        if ((key['developer_class'] == None and 'Developer Class' not in plan['name'] )  or (key['developer_class'] != None and plan['name'] == key['developer_class']['name'])):
-                            matchCt += 1
+                        if (api['service_key'] == plan_service['service_definition']['service_key']):
+                            if ((key['developer_class'] == None and 'Developer Class' not in plan['name'] )  or (key['developer_class'] != None and plan['name'] == key['developer_class']['name'])):
+                                matchCt += 1
 
                 if (matchCt == len(plan['plan_services'])):
                     key_to_migrate['package_id'] = plan['package']['id']
