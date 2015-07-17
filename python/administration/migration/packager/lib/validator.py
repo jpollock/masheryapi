@@ -1,3 +1,5 @@
+import json
+
 class Validator:
 
     def __init__(self, logger):
@@ -151,6 +153,7 @@ class Validator:
                         developer_class_set.append(key['developer_class']['id'])
             
             if (len(developer_class_set) > 1 and len(application['keys']) > 1):
+                self.logger.info('same_key_string_different_developer_classes : %s', json.dumps(application))
                 return 1
 
         return 0
@@ -163,6 +166,7 @@ class Validator:
                     status_set.append(key['status'])
 
             if (len(status_set) > 1 and len(application['keys']) > 1):
+                self.logger.info('same_key_string_different_statuses : %s', json.dumps(application))
                 return 1
 
         return 0
