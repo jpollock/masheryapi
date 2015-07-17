@@ -74,9 +74,9 @@ class BaseMigrator:
 
         return applications
 
-    def get_migration_data(self, file):
+    def get_migration_data(self, migration_file):
         try:
-            f = open(file, 'r')
+            f = open(migration_file, 'r')
             file_contents = f.read()
             migration_data = json.loads(file_contents)
             f.close()
@@ -146,7 +146,7 @@ class BaseMigrator:
                     t_del.append(k['id'])
 
                 if (len(t_del) > 0):
-                  self.base.delete('package_key', t_del) 
+                    self.base.delete('package_key', t_del) 
             except ValueError as err:
                 self.logger.error('Problem deleting package keys: %s', json.dumps(err.args)) 
                 return False
@@ -213,7 +213,7 @@ class BaseMigrator:
         if (len(key_data) == 1):
             key_data = key_data[0]
         else:
-            self.logger.error('Problem fetching key for %s', json.dumps(application))
+            self.logger.error('Problem fetching key for %s', json.dumps(key))
         
         return key_data
 
