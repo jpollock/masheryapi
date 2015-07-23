@@ -1,5 +1,10 @@
 # masheryapi
 
+##Setup
+
+Checkout project
+Set environment variable: PYTHONPATH=$PYTHONPATH:/masheryapi/python/lib/api:/masheryapi/python/lib/services
+
 ## masheryreporting
 
 Scripts that interact with the Mashery Reporting API V2. Please see [here](http://support.mashery.com/docs/read/mashery_api/20_reporting) for more information about this API.

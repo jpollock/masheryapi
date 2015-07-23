@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os, sys, urllib, argparse, time, codecs
-sys.path.append( '../lib/' )
 import masheryV2, masheryDate
 
 def apiName(apis, apiId):
