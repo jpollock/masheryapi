@@ -1,0 +1,42 @@
+ [
+    {
+        "apikey": "key_no_app_no_member",
+        "secret": "password12",
+        "memberless": true,
+        "applicationless": true,
+        "developerclass": false,
+        "customlimits": false
+    },
+    {
+        "apikey": "key_no_app_with_member",
+        "secret": "password12",
+        "memberless": false,
+        "applicationless": true,
+        "developerclass": false,
+        "customlimits": false
+    },
+    {
+        "apikey": "key_with_app_with_member",
+        "secret": "password12",
+        "memberless": false,
+        "applicationless": false,
+        "developerclass": false,
+        "customlimits": false
+    },
+    {
+        "apikey": "key_with_app_with_member_with_developer_class",
+        "secret": "password12",
+        "memberless": false,
+        "applicationless": false,
+        "developerclass": true,
+        "customlimits": false
+    },
+    {
+        "apikey": "key_with_app_with_member_with_custom_limits",
+        "secret": "password12",
+        "memberless": false,
+        "applicationless": false,
+        "developerclass": false,
+        "customlimits": true
+    }
+]
