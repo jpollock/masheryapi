@@ -1,5 +1,4 @@
 import sys, urllib, argparse
-sys.path.append( '../lib/' )
 import masheryV2, masheryDate
 
 def apiName(apis, apiId):

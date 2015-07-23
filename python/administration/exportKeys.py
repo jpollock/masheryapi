@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys, urllib, argparse, time, json
-sys.path.append( '../lib/' )
 import masheryV2, masheryDate, keysReports
 
 def fetchAllKeys(siteId, apikey, secret, fields):
