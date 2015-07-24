@@ -21,7 +21,7 @@ def main(argv):
 
   masheryV2 = Base('https', 'api.mashery.com', siteId, apikey, secret)
 
-  allKeys = masheryV2.fetch('keys', fields, '')
+  allKeys = masheryV2.fetch('keys', ','.join(fields), '')
 
   f = open(outputFile,'w')
   headers = ','.join(fields) + '\n'

@@ -20,7 +20,7 @@ def main(argv):
 
   masheryV2 = Base('https', 'api.mashery.com', siteId, apikey, secret)
 
-  allDevelopers = masheryV2.fetch('members', fields, '')
+  allDevelopers = masheryV2.fetch('members', ','.join(fields), '')
 
   f = open(outputFile,'w')
   headers = ','.join(fields) + '\n'
