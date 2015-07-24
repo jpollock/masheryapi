@@ -1,17 +1,5 @@
 import sys, urllib, argparse, time, json
-import masheryV2, masheryDate, keysReports
-
-def fetchAllApplications(siteId, apikey, secret):
-  allApplications = []
-  result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select member.username, member.email, name, keys, package_keys from applications ITEMS 10"]}')
-  total_pages = result['result']['total_pages']
-  page = 1
-  while (page < total_pages + 1):
-    result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select member.username, member.email, name, keys, package_keys from applications PAGE ' + str(page) + ' ITEMS 10"]}')
-    allApplications.extend(result['result']['items'])
-    page = page + 1
-
-  return allApplications
+from base import Base
 
 def main(argv):
   
@@ -28,7 +16,9 @@ def main(argv):
   siteId = args.siteId
   outputFile = args.outputFile
 
-  allApplications = fetchAllApplications(siteId, apikey, secret)
+  masheryV2 = Base('https', 'api.mashery.com', siteId, apikey, secret)
+
+  allApplications = masheryV2.fetch('applications', 'member.username, member.email, name, keys, package_keys', '')
 
   f = open(outputFile,'w')
   headers = 'username, email, application_name, num_keys, num_package_keys\n'
