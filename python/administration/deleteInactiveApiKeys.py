@@ -1,5 +1,6 @@
 import sys, urllib, argparse, time, json
-import masheryV2, masheryDate, keysReports
+from base import Base
+import masheryDate, keysReports
 
 def apiName(apis, apiId):
   for api in apis['result']['items']:
@@ -100,7 +101,11 @@ def main(argv):
     print 'ERROR: endDate must be at least 1 day past startDate'
     return
   
+  masheryV2 = Base('https', 'api.mashery.com', siteId, apikey, secret)
+
   allKeys = fetchAllKeys(siteId, apikey, secret)
+
+
 
   writeToFile('keys.csv', allKeys)
 

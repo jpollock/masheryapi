@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys, urllib, argparse, time, json
-import masheryV2, masheryDate, keysReports
-
-def fetchAllKeys(siteId, apikey, secret, fields):
-  allKeys = []
-  result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + ','.join(fields) + ' from keys ITEMS 1000"]}')
-  total_pages = result['result']['total_pages']
-  page = 1
-  while (page < total_pages):
-    result = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + ','.join(fields) + ' from keys PAGE ' + str(page) + ' ITEMS 1000"]}')
-    allKeys.extend(result['result']['items'])
-    page = page + 1
-
-  return allKeys
+from base import Base
 
 def main(argv):
   
@@ -31,7 +19,9 @@ def main(argv):
   outputFile = args.outputFile
   fields = args.fields
 
-  allKeys = fetchAllKeys(siteId, apikey, secret, fields)
+  masheryV2 = Base('https', 'api.mashery.com', siteId, apikey, secret)
+
+  allKeys = masheryV2.fetch('keys', fields, '')
 
   f = open(outputFile,'w')
   headers = ','.join(fields) + '\n'
