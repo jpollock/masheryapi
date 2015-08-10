@@ -34,8 +34,16 @@ class UpdateMemberlessApplicationlessKeys(BaseMigrator):
                     member = self.base.create('member', member)
                     member = member['result']
                 except ValueError as err:
-                    self.logger.error(json.dumps(err.args))
-                    return None
+                    if (err.args[0][0]['message'] == 'Invalid Object'):
+                        member = self.base.update_object_with_required_attributes(member, err.args[0][0]['data'])
+                        try:
+                            member = self.base.create('member', member)
+                        except ValueError as err:
+                            self.logger.error(json.dumps(err.args))
+                            return
+                    else:
+                        self.logger.error(json.dumps(err.args))
+                        return
         else:
             member = member[0]
 
