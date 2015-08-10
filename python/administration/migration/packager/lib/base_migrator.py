@@ -15,7 +15,10 @@ class BaseMigrator:
 
     def update_object_with_required_attributes(self, object_to_update, missing_properties):
         for missing_property in missing_properties:
-            object_to_update[missing_property['field']] = 'default'
+            if missing_property['field'] == 'uri':
+                object_to_update[missing_property['field']] = 'http://www.example.com'
+            else:
+                object_to_update[missing_property['field']] = 'default'
         
         return object_to_update
     
