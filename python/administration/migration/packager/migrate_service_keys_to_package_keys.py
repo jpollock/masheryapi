@@ -214,11 +214,23 @@ def main(argv):
                 migrate_keys.base.update('application', application_data)
             except ValueError as err:
                 migrate_keys.logger.error('Problem updating application: %s %s', str(application_data['id']), json.dumps(err.args))
-                if migrate_keys.restore_application(application, nodryrun) == False:
-                    migrate_keys.logger.error('Failed rollback')
+                if (err.args[0][0]['message'] == 'Invalid Object'):
+                    application_data = migrate_keys.update_object_with_required_attributes(application_data, err.args[0][0]['data'])
+                    try:
+                        migrate_keys.base.update('application', application_data)
+                    except ValueError as err:
+                        if migrate_keys.restore_application(application, nodryrun) == False:
+                            migrate_keys.logger.error('Failed rollback')
+                        else:
+                            migrate_keys.logger.error('Successful rollback')
+                        return 
                 else:
-                    migrate_keys.logger.error('Successful rollback')
-                return 
+                    if migrate_keys.restore_application(application, nodryrun) == False:
+                        migrate_keys.logger.error('Failed rollback')
+                    else:
+                        migrate_keys.logger.error('Successful rollback')
+                    return 
+
 
             try:                  
                 created_package_keys = migrate_keys.base.create('package_key', package_keys_to_create)
