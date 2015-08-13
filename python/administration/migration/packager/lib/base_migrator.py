@@ -236,6 +236,6 @@ class BaseMigrator:
                 self.logger.error('Problem fetching application for %s', json.dumps(application))
 
             if (len(application['keys']) != len(application_data['keys'])):
-                self.logger.error('Application data missing keys %s', json.dumps(application))
+                self.logger.error('Application data missing keys: json file: %s  api return: %s', json.dumps(application), json.dumps(application_data))
 
         return application_data
