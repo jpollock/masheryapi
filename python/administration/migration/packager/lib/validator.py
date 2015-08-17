@@ -5,16 +5,66 @@ class Validator:
     def __init__(self, logger):
         self.logger = logger
 
-    def validate_application_to_migrate(self, application):
+    def get_api_for_key(self, apis, key_data):
+        for api in apis:
+            if (api['service_key'] == key_data['service_key']):
+                return api
+
+        return None
+
+    def get_package_plan_for_key(self, packages, key):
+        for plan in packages:
+            if (plan['id'] == key['plan_id'] and plan['package']['id'] == key['package_id']):
+                return plan
+
+        return None
+
+    def plan_contains_service(self, package_data, service_of_key):
+        for plan_service in package_data['plan_services']:
+            if (plan_service['service_definition']['service_key'] == service_of_key):
+                return True
+
+        return False
+
+    def validate_application_to_migrate(self, application, apis, packages):
         # tests:
         #   1) make sure that the app's keys, if same key string, all point to same package and plan
-        apikeys = {}
+        #   2) make sure that the app's keys are not pointing to a plan that doesn't contain the service
+        '''apikeys = {}
         for key in application['keys']:
             if (key['apikey'] not in apikeys):
                 apikeys[key['apikey']] = key
             else:
                 if (key['package_id'] != apikeys[key['apikey']]['package_id'] or key['plan_id'] != apikeys[key['apikey']]['plan_id']):
                     return False
+        '''
+        if (application == None):
+            return False
+
+        for key in application['keys']:
+            if ('package_id' not in key or 'plan_id' not in key or 'service_key' not in key):
+                self.logger.warn('Application %s has keys without package plan or service', str(application['id']))
+                return False
+
+            # fetch api data
+            api_data = self.get_api_for_key(apis, key)
+            if (api_data == None):
+                self.logger.error('Problem fetching api: %s', json.dumps(key))
+                return False
+
+            # fetch package data
+            plan_data = self.get_package_plan_for_key(packages, key)
+            if (plan_data == None):
+                self.logger.error('Problem fetching package plan: %s', json.dumps(key))
+                return False
+
+            if (plan_data['package']['name'] != api_data['name']):
+                self.logger.error('Mismatch on package and api name: %s %s', plan_data['package']['name'], api_data['name'])
+                return False
+
+            if (self.plan_contains_service(plan_data, key['service_key']) == False):
+                self.logger.error('Plan does not contain service: %s', key_data['service_key'])
+                return False
 
         return True
 

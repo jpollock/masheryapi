@@ -4,7 +4,6 @@ from lib.base_migrator import BaseMigrator
 class GetServiceKeysToMigrate(BaseMigrator):
     def __init__(self):
         BaseMigrator.__init__(self)
-
     
     def update_key_with_package_data(self, key, apis, plans):
         key_to_migrate = {}
@@ -55,7 +54,7 @@ def main(argv):
 
     applications_from_csv = {}
     if (file_with_keys != None):
-        with open(file_with_keys) as csvfile:
+        with open(file_with_keys, 'rU') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 application = {}
@@ -76,7 +75,6 @@ def main(argv):
 
                 applications_from_csv[row['application_id']] = application
 
-
     applications_to_migrate = []
     for application in applications:
         if (application['is_packaged'] == True):
@@ -94,10 +92,10 @@ def main(argv):
             key_to_migrate = get_keys_to_migrate.update_key_with_package_data(key, apis, plans)
             application_to_migrate['keys'].append(key_to_migrate)
 
-        if (get_keys_to_migrate.validator.validate_application_to_migrate(application_to_migrate) == True):
+        if (get_keys_to_migrate.validator.validate_application_to_migrate(application_to_migrate, apis, plans) == True):
             applications_to_migrate.append(application_to_migrate)
         else:
-            get_keys_to_migrate.logger.error('Problem with %s', json.dumps(application))
+            get_keys_to_migrate.logger.error('Application not valid for migration: %s', json.dumps(application))
 
 
     f = open(get_keys_to_migrate.migration_environment.configuration['migration']['key_input_file'],'w')
