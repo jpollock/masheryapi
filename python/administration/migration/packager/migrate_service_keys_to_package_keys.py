@@ -96,15 +96,15 @@ class MigrateServiceKeysToPackageKeys(BaseMigrator):
 
         ready = True
             
-        if (package_data['package']['name'] != api_data['name']):
+        if (plan_data['package']['name'] != api_data['name']):
             ready = False
             result['Service Name Does Not Match Package Name'] = True
 
-        if (key_data['developer_class'] != None and package_data['name'] != key_data['developer_class']['name']):
+        if (key_data['developer_class'] != None and plan_data['name'] != key_data['developer_class']['name']):
             ready = False
             result['Developer Class Name Does Not Match Plan Name'] = True
 
-        if (self.plan_contains_service(package_data, key_data['service_key']) == False):
+        if (self.plan_contains_service(plan_data, key_data['service_key']) == False):
             ready = False
             result['Service Not In Plan'] = True
 
