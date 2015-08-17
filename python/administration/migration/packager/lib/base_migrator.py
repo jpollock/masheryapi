@@ -1,4 +1,4 @@
-import logger, json
+import logger, json, logging
 from migration_environment import MigrationEnvironment
 from validator import Validator
 from base import Base
@@ -7,11 +7,43 @@ class BaseMigrator:
     def __init__(self,):
         self.migration_environment = MigrationEnvironment()
         mashery_api_config = self.migration_environment.configuration
-        self.base = Base(mashery_api_config['mashery_api']['protocol'], mashery_api_config['mashery_api']['hostname'], mashery_api_config['mashery_area']['id'], mashery_api_config['mashery_api']['apikey'], mashery_api_config['mashery_api']['secret'])
 
-        self.logger = logger.setup(self.__class__.__name__, mashery_api_config['migration']['log_location']  + 'package_migrator.log')
+        # Logging: had to move to this class since i don't understand python enough;
+        # for some reason i couldn't get python to emit the logs to different files;
+        # should be re-factored at some point
+        
+        # turn off info from http requests library
+        logging.getLogger('requests').setLevel(logging.ERROR)
+        # set a format which is simpler for console use
+        formatter1 = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        # define a Handler which writes INFO messages or higher to the sys.stderr
+        streamHandler = logging.StreamHandler()
+        streamHandler.setLevel(logging.ERROR)
+        streamHandler.setFormatter(formatter1)
+        logging.getLogger('').addHandler(streamHandler)  
 
-        self.validator = Validator(self.logger)
+        formatter2 = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+        l1 = logging.getLogger(self.__class__.__name__)
+        fileHandler1 = logging.FileHandler(mashery_api_config['migration']['log_location']  + 'package_migrator.log', mode='a')
+        fileHandler1.setLevel(logging.INFO)
+        fileHandler1.setFormatter(formatter2)
+        l1.addHandler(fileHandler1)
+        l1.setLevel(logging.INFO)        
+        l1 = logging.getLogger(self.__class__.__name__)
+
+        l2 = logging.getLogger(self.__class__.__name__ + 'Transactions')
+        fileHandler2 = logging.FileHandler(mashery_api_config['migration']['log_location']  + 'package_migrator_transactions.log', mode='a')
+        fileHandler2.setLevel(logging.INFO)
+        fileHandler2.setFormatter(formatter2)
+        l2.addHandler(fileHandler2)
+        l2.setLevel(logging.INFO)
+        l2 = logging.getLogger(self.__class__.__name__ + 'Transactions')
+
+        self.base = Base(mashery_api_config['mashery_api']['protocol'], mashery_api_config['mashery_api']['hostname'], mashery_api_config['mashery_area']['id'], mashery_api_config['mashery_api']['apikey'], mashery_api_config['mashery_api']['secret'], l2)
+
+        self.validator = Validator(l1)
+
+        self.logger = l1
 
     def update_object_with_required_attributes(self, object_to_update, missing_properties):
         for missing_property in missing_properties:
