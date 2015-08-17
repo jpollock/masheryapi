@@ -30,10 +30,11 @@ class Base:
 
     def object_describe(self, object_type):
         try:
+            method = '{"method":"object.describe","id":1,"params":[["'+object_type+'"]]}'
             if (self.logger != None):
-                self.logger.info('API METHOD: %s', '{"method":"area.fetch","id":1,"params":[]}')
+                self.logger.info('API METHOD: %s', method)
 
-            result = self.masheryV2.post(self.site_id, self.apikey, self.secret, '{"method":"object.describe","id":1,"params":[["'+object_type+'"]]}')
+            result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
             if (self.logger != None):
                 self.logger.info('RESPONSE: %s', json.dumps(result))
 
@@ -49,10 +50,11 @@ class Base:
     def fetch(self, object_type, fields, filter_clause):
       results = []
       try:
+          method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' ITEMS 1000"]}'
           if (self.logger != None):
-              self.logger.info('API METHOD: %s', '{"method":"area.fetch","id":1,"params":[]}')
+              self.logger.info('API METHOD: %s', method)
 
-          result = self.masheryV2.post(self.site_id, self.apikey, self.secret, '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' ITEMS 1000"]}')
+          result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
           if (self.logger != None):
               self.logger.info('RESPONSE: %s', json.dumps(result))
 
@@ -61,10 +63,14 @@ class Base:
           page = 1
           while (page < total_pages):
             page = page + 1
+            method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' PAGE ' + str(page) + ' ITEMS 1000"]}'
+            if (self.logger != None):
+                self.logger.info('API METHOD: %s', method)
+
             if (self.logger != None):
                 self.logger.info('API METHOD: %s', '{"method":"area.fetch","id":1,"params":[]}')
 
-            result = self.masheryV2.post(self.site_id, self.apikey, self.secret, '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' PAGE ' + str(page) + ' ITEMS 1000"]}')
+            result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
             if (self.logger != None):
                 self.logger.info('RESPONSE: %s', json.dumps(result))
             results.extend(result['result']['items'])
