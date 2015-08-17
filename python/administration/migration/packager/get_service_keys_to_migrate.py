@@ -6,36 +6,22 @@ class GetServiceKeysToMigrate(BaseMigrator):
         BaseMigrator.__init__(self)
 
     
-    def update_key_with_package_data(self, key, apis, plans, consolidate):
+    def update_key_with_package_data(self, key, apis, plans):
         key_to_migrate = {}
         key_to_migrate['apikey'] = key['apikey']
         key_to_migrate['service_key'] = key['service_key']
 
-        if (consolidate == True):
-            for plan in plans:
-                matchCt = 0
-                for plan_service in plan['plan_services']:
-                    for api in apis:
-                        if (api['service_key'] == plan_service['service_definition']['service_key']):
-                            if ((key['developer_class'] == None and 'Developer Class' not in plan['name'] )  or (key['developer_class'] != None and plan['name'] == key['developer_class']['name'])):
-                                matchCt += 1
+        for api in apis:
+            if (api['service_key'] == key['service_key']):
+                for plan in plans:
+                    if (plan['package']['name'] == api['name']):
+                        key_to_migrate['package_id'] = plan['package']['id']
+                        plan_name = api['name']
+                        if (key['developer_class'] != None):
+                            plan_name = key['developer_class']['name']
 
-                if (matchCt == len(plan['plan_services'])):
-                    key_to_migrate['package_id'] = plan['package']['id']
-                    key_to_migrate['plan_id'] = plan['id']
-
-        else:
-            for api in apis:
-                if (api['service_key'] == key['service_key']):
-                    for plan in plans:
-                        if (plan['package']['name'] == api['name']):
-                            key_to_migrate['package_id'] = plan['package']['id']
-                            plan_name = api['name']
-                            if (key['developer_class'] != None):
-                                plan_name = key['developer_class']['name']
-
-                            if (plan['name'] == plan_name):
-                                key_to_migrate['plan_id'] = plan['id']
+                        if (plan['name'] == plan_name):
+                            key_to_migrate['plan_id'] = plan['id']
 
         return key_to_migrate
 
@@ -99,15 +85,13 @@ def main(argv):
         if len(applications_from_csv) > 0 and str(application['id']) not in applications_from_csv:
             continue
 
-        consolidate = get_keys_to_migrate.application_should_be_consolidated(application)
-        
         application_to_migrate = {}
         application_to_migrate['id'] = application['id']
         application_to_migrate['name'] = application['name']
         application_to_migrate['username'] = application['username']
         application_to_migrate['keys'] = []
         for key in application['keys']:
-            key_to_migrate = get_keys_to_migrate.update_key_with_package_data(key, apis, plans, consolidate)
+            key_to_migrate = get_keys_to_migrate.update_key_with_package_data(key, apis, plans)
             application_to_migrate['keys'].append(key_to_migrate)
 
         if (get_keys_to_migrate.validator.validate_application_to_migrate(application_to_migrate) == True):
