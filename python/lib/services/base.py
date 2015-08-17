@@ -67,9 +67,6 @@ class Base:
             if (self.logger != None):
                 self.logger.info('API METHOD: %s', method)
 
-            if (self.logger != None):
-                self.logger.info('API METHOD: %s', '{"method":"area.fetch","id":1,"params":[]}')
-
             result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
             if (self.logger != None):
                 self.logger.info('RESPONSE: %s', json.dumps(result))
