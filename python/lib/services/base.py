@@ -71,6 +71,22 @@ class Base:
 
       return results
 
+    def validate(self, object_type, item_data):
+      result = []
+      method = '{"method":"' + object_type + '.validate","id":1,"params":[' + json.dumps(item_data) + ']}'
+      try:
+          if (self.logger != None):
+              self.logger.info('API METHOD: %s', method)
+
+          result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
+          if (self.logger != None):
+              self.logger.info('RESPONSE: %s', json.dumps(result))
+          return result
+      except ValueError as err:
+          if (self.logger != None):
+              self.logger.error('ERROR: %s', json.dumps(err.args))        
+          raise ValueError(err.args)      
+
     def create(self, object_type, item_data):
       result = []
       method = '{"method":"' + object_type + '.create","id":1,"params":[' + json.dumps(item_data) + ']}'

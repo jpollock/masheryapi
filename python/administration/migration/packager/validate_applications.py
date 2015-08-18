@@ -43,6 +43,11 @@ def main(argv):
                     validate_applications.logger.error('Expecting non-packaged application for %s', json.dumps(application))
                     continue
 
+        try:
+            validate_applications.base.validate('application', application_data)
+        except ValueError as err:
+            validate_applications.logger.error('Invalid application: %s', json.dumps(err.args))
+
         for key in application['keys']:
             if (packagekeys == True):
                 package_key_data = None
