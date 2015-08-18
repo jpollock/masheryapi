@@ -50,24 +50,10 @@ class MigrateServiceKeysToPackageKeys(BaseMigrator):
         if (application_data['is_packaged'] == True):
             return False
 
-        key_set = []
-        package_set = []
-        plan_set = []
         for key in application['keys']:
             if ('package_id' not in key or 'plan_id' not in key):
                 self.logger.warn('Application %s has keys without package plan', str(application_data['id']))
                 return False
-
-            if (key['apikey'] not in key_set):
-                key_set.append(key['apikey'])
-            if (key['package_id'] not in package_set):
-                package_set.append(key['package_id'])
-            if (key['plan_id'] not in plan_set):
-                plan_set.append(key['plan_id'])
-
-        if (len(key_set) == 1 and len(package_set) != 1 and len(plan_set) != 1):
-            self.logger.info('Application %s has keys of same value and multiple package plans', str(application_data['id']))
-            return False
 
         for key_data in application_data['keys']:
             # fetch api data
