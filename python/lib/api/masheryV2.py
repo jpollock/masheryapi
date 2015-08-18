@@ -21,12 +21,13 @@ class MasheryV2:
         url = str(self.protocol) + '://' + str(self.api_host) + resourceEndpoint + '/' + str(site_id) + '?apikey=' + apikey + '&sig=' + self.hash(apikey, secret)
 
         response = requests.post(url, headers=headers, data=payload)
-        resonseJson = response.json()
 
         if (response.status_code == 200):
-          return resonseJson
+          responseJson = response.json()
+          return responseJson
         else:
-          raise ValueError(resonseJson['error']) 
+          print response
+          raise ValueError(responseJson['error']) 
 
     def hash(self, apikey, secret):
         authHash = hashlib.md5();
