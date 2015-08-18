@@ -51,25 +51,17 @@ class Base:
       results = []
       try:
           method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' ITEMS 1000"]}'
-          if (self.logger != None):
-              self.logger.info('API METHOD: %s', method)
-
           result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
-          if (self.logger != None):
-              self.logger.info('RESPONSE: %s', json.dumps(result))
 
           results.extend(result['result']['items'])
           total_pages = result['result']['total_pages']
           page = 1
+
           while (page < total_pages):
             page = page + 1
             method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' PAGE ' + str(page) + ' ITEMS 1000"]}'
-            if (self.logger != None):
-                self.logger.info('API METHOD: %s', method)
 
             result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
-            if (self.logger != None):
-                self.logger.info('RESPONSE: %s', json.dumps(result))
             results.extend(result['result']['items'])
           
       except ValueError as err:
