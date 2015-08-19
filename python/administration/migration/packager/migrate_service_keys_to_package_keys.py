@@ -123,11 +123,6 @@ class MigrateServiceKeysToPackageKeys(BaseMigrator):
             package_key = self.get_package_key(application_data, key_data, package_data)
             package_keys_to_create.append(package_key)
 
-        if (self.application_should_be_consolidated(application_data) == True):
-            single_package_keys_to_create = []
-            single_package_keys_to_create.append(package_keys_to_create[0])
-            package_keys_to_create = single_package_keys_to_create
-
         return package_keys_to_create
 
 def main(argv):
