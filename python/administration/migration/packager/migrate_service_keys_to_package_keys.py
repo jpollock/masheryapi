@@ -144,8 +144,6 @@ def main(argv):
     args = parser.parse_args()
     nodryrun = args.nodryrun
 
-    print nodryrun
-
     # get the input file, containing a json representation
     # of apps to archive
     migration_data = migrate_keys.get_migration_data(migrate_keys.migration_environment.configuration['migration']['key_input_file'])
@@ -214,15 +212,21 @@ def main(argv):
 
             try:                  
                 created_package_keys = migrate_keys.base.create('package_key', package_keys_to_create)
+
                 for created_package_key in created_package_keys['result']:
+                    
+                    package_key_data = migrate_keys.base.fetch('package_keys', 'apikey, package.id, plan.id', 'WHERE id = ' + str(created_package_key['id']))
+
                     status_not_right = False
+
                     for key in application['keys']:
                         # make sure the data is really restored, including "status" - that often gets 
                         # screwed up due to deleted keys counting against limits
-                        backup_key = migrate_keys.get_service_key_from_backup(migrate_keys.migration_environment.configuration['migration']['backup_location'], key)
-                        if (created_package_key['status'] != backup_key['status']):
-                            status_not_right = True
-                            created_package_key['status'] = backup_key['status']
+                        if package_key_data[0]['apikey'] == key['apikey'] and package_key_data[0]['package']['id'] == key['package_id'] and package_key_data[0]['plan']['id'] == key['plan_id']:
+                            backup_key = migrate_keys.get_service_key_from_backup(migrate_keys.migration_environment.configuration['migration']['backup_location'], key)
+                            if (created_package_key['status'] != backup_key['status']):
+                                status_not_right = True
+                                created_package_key['status'] = backup_key['status']
 
                     if (status_not_right == True):
                         migrate_keys.base.update('package_key', created_package_key)
