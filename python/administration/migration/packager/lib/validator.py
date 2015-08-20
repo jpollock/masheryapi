@@ -147,8 +147,9 @@ class Validator:
         if (area_validation_data['applications_with_multiple_same_apikey_strings']['same_key_string_different_developer_classes'] > 0):
             return False
 
-        if (area_validation_data['applications_with_multiple_same_apikey_strings']['same_key_string_different_statuses'] > 0):
-            return False
+        # Removing this check; only necessary for consolidation of keys feature
+        #if (area_validation_data['applications_with_multiple_same_apikey_strings']['same_key_string_different_statuses'] > 0):
+        #    return False
 
         return True
 
