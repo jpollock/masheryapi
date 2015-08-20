@@ -103,7 +103,7 @@ class Validator:
 
     def validate_service_key(self, key_data, key_data_from_backup):
         for val in key_data:
-            if (val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application'):
+            if (val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application' or val == 'service' or val == 'developer_class'):
                 continue
 
             n_val = key_data[val]
