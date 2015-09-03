@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, urllib, argparse, time, json
+import sys, urllib, argparse, time, json, logging
 from base import Base
 
 def main(argv):
@@ -19,7 +19,7 @@ def main(argv):
   outputFile = args.outputFile
   fields = args.fields
 
-  masheryV2 = Base('https', 'api.mashery.com', siteId, apikey, secret)
+  masheryV2 = Base('https', 'api.mashery.com', siteId, apikey, secret, logging.getLogger('exportKeys'))
 
   allKeys = masheryV2.fetch('keys', ','.join(fields), '')
 

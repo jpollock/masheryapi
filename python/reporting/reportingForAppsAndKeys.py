@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys, urllib, argparse, time, codecs
-import masheryV2, masheryDate
+import masheryDate
+from masheryV2 import MasheryV2
 
 def apiName(apis, apiId):
   for api in apis['result']['items']:
@@ -32,6 +33,8 @@ def main(argv):
     print 'ERROR: endDate must be at least 1 day past startDate'
     return
 
+  masheryV2 = MasheryV2('https', 'api.mashery.com')
+
   apis = args.apis
 
   if args.apis == None:
@@ -55,11 +58,12 @@ def main(argv):
 
         print 'Processing...' + api['name']
         for date in dates:
+          print 'Processing...' + date[0]
           urlParams = '&start_date=' + urllib.quote_plus(date[0]) + '&end_date=' + urllib.quote_plus(date[1]) + '&format=json&limit=1000'
           results.extend(masheryV2.get(siteId, apikey, secret, '/reports/calls/developer_activity/service/' + api['service_key'], urlParams))
 
-    except ValueError:
-        pass
+    except ValueError, e:
+        print e
 
   UTF8Writer = codecs.getwriter('utf8')
   f = UTF8Writer(open(outputFile,'w'))
@@ -71,13 +75,12 @@ def main(argv):
 
   f.write(headers)
   for result in results:
-    
     if result['serviceDevKey'] in keys or len(keys) == 0:
       time.sleep(1) # adding slight delay so as to decrease chances of hitting mashery api qps limits
       query = '{"method":"object.query","id":1,"params":["select ' + customFields + ' from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}'
       
       key = masheryV2.post(siteId, apikey, secret, query)
-      
+
       unknown_field = '<UNKNOWN>'
 
       if (key['result']['total_items'] > 0) :
@@ -96,8 +99,8 @@ def main(argv):
             customFieldValues = customFieldValues + '"' + unknown_field + '",'
             pass
 
-        outputString = customFieldValues + result['serviceKey'] + ',"' + apiName(all_apis, result['serviceKey']) + '",'+ result['serviceDevKey']  + ',' + result['startDate']  + ',' + result['endDate']  + ','+ str(result['callStatusSuccessful'])  + ',' + str(result['callStatusBlocked']) + ',' + str(result['callStatusOther']) + ',' + str(result['callStatusSuccessful'] +  result['callStatusBlocked'] + result['callStatusOther'])
-        f.write(outputString + '\n')
+      outputString = str(customFieldValues) + result['serviceKey'] + ',"' + apiName(all_apis, result['serviceKey']) + '",'+ result['serviceDevKey']  + ',' + result['startDate']  + ',' + result['endDate']  + ','+ str(result['callStatusSuccessful'])  + ',' + str(result['callStatusBlocked']) + ',' + str(result['callStatusOther']) + ',' + str(result['callStatusSuccessful'] +  result['callStatusBlocked'] + result['callStatusOther'])
+      f.write(outputString + '\n')
 
   f.close()
 if __name__ == "__main__":
