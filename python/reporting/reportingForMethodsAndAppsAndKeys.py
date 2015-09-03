@@ -1,5 +1,6 @@
 import sys, urllib, argparse
-import masheryV2, masheryDate
+import masheryDate
+from masheryV2 import MasheryV2
 
 def apiName(apis, apiId):
   for api in apis['result']['items']:
@@ -29,6 +30,8 @@ def main(argv):
     print 'ERROR: endDate must be at least 1 day past startDate'
     return
 
+  masheryV2 = MasheryV2('https', 'api.mashery.com')    
+
   apis = args.apis
 
   if args.apis == None:
@@ -46,10 +49,13 @@ def main(argv):
 
         print 'Processing...' + api['name']
         for date in dates:
+          print date
           urlParams = '&start_date=' + urllib.quote_plus(date[0]) + '&end_date=' + urllib.quote_plus(date[1]) + '&format=json&limit=1000'
+          print api['service_key'] 
           apiReportingResults = masheryV2.get(siteId, apikey, secret, '/reports/calls/developer_activity/service/' + api['service_key'], urlParams)
           for apiReportingResult in apiReportingResults:
             if (apiReportingResult['serviceDevKey'] != 'unknown'):
+              print apiReportingResult['serviceDevKey']
               developerReportingResult = masheryV2.get(siteId, apikey, secret, '/reports/calls/methods/service/' + api['service_key'] +  '/developer/' + apiReportingResult['serviceDevKey'], urlParams)
               if (developerReportingResult != None):
                 results.extend(developerReportingResult)
@@ -61,11 +67,11 @@ def main(argv):
   f.write('Application,API ID,API Name,API Method,Key,Start Date,End Date,Calls\n')
   for result in results:
     try:
-        key = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select *, application from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}')
-
+        #key = masheryV2.post(siteId, apikey, secret, '{"method":"object.query","id":1,"params":["select *, application from keys where apikey = \'' + result['serviceDevKey']  + '\'"]}')
+        print key
         application_name = '<UNKNOWN>'
-        if (key['result']['total_items'] > 0) :
-            application_name = key['result']['items'][0]['application']['name']
+        #if (key['result']['total_items'] > 0) :
+        #    application_name = key['result']['items'][0]['application']['name']
         f.write('"' + application_name + '",' + result['serviceKey'] + ',"' + apiName(all_apis, result['serviceKey']) + '","'+  result['apiMethod']+ '",'+ result['serviceDevKey']  + ',' + result['startDate']  + ',' + result['endDate']  + ','+ str(result['methodCount']) + '\n')
     except TypeError:
         pass

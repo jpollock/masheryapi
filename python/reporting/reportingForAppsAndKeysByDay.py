@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os, sys, urllib, argparse, time, codecs
-import masheryV2, masheryDate
+import masheryDate
+from masheryV2 import MasheryV2
+
 
 def apiName(apis, apiId):
   for api in apis['result']['items']:
@@ -32,6 +34,8 @@ def main(argv):
     print 'ERROR: endDate must be at least 1 day past startDate'
     return
 
+  masheryV2 = MasheryV2('https', 'api.mashery.com')
+  
   apis = args.apis
 
   if args.apis == None:
