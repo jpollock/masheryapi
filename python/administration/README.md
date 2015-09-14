@@ -38,10 +38,10 @@ usage: update_endpoint_domains.py [-h] [--apis APIS [APIS ...]]
 
 Example:
 
-python update_endpoint_domains.py <Mashery V3 API Key> <Mashery V3 API Secret> <Area/Site Uuid> <Mashery Portal Username> <Mashery Portal Password> --apis asd42asdasdasdwadsasd asdasdasdad323ddsd --public_domains api1.company.com api2.company.com
+python update_endpoint_domains.py \<Mashery V3 API Key> \<Mashery V3 API Secret> \<Area/Site Uuid> \<Mashery Portal Username> \<Mashery Portal Password> --apis asd42asdasdasdwadsasd asdasdasdad323ddsd --public_domains api1.company.com api2.company.com
 
 This would add the two public domains to each of the endpoints contained in the two APIs. 
 
-python update_endpoint_domains.py <Mashery V3 API Key> <Mashery V3 API Secret> <Area/Site Uuid> <Mashery Portal Username> <Mashery Portal Password> --endpoints asd42asdasdasdwadsasd:as323asd3444444 asdasdasdad323ddsd:zzzppppzsdddsd --public_domains api1.company.com api2.company.com
+python update_endpoint_domains.py \<Mashery V3 API Key> \<Mashery V3 API Secret> \<Area/Site Uuid> \<Mashery Portal Username> \<Mashery Portal Password> --endpoints asd42asdasdasdwadsasd:as323asd3444444 asdasdasdad323ddsd:zzzppppzsdddsd --public_domains api1.company.com api2.company.com
 
 This would add the two public domains to each of the endpoints passed in, i.e. only add the two public domains to specific endpoints and not all contained within a given API. 
