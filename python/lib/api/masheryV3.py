@@ -12,7 +12,10 @@ class MasheryV3:
     def authenticate(self, apikey, secret, username, password, areaUuid):
         payload = {'grant_type': 'password', 'username' : username, 'password'  : password, 'scope' : areaUuid} 
         response = requests.post(self.protocol + '://' + self.api_host + self.token_endpoint, auth=HTTPBasicAuth(apikey, secret), data=payload)
-        return response.json()['access_token']
+        if response.status_code == 200:
+            return response.json()['access_token']
+        else:
+            return response.json()
 
     def get(self, token, resource, params):
         headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
