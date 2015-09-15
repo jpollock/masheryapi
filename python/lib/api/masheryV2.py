@@ -26,7 +26,6 @@ class MasheryV2:
         if (response.status_code == 200):
           return responseJson
         else:
-          print response.text
           raise ValueError(responseJson['error']) 
 
     def hash(self, apikey, secret):
