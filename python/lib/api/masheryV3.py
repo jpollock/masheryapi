@@ -27,9 +27,9 @@ class MasheryV3:
         response = requests.put(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers, data=json.dumps(payload))
         return response.json()
 
-    def post(self, token, resource, payload):
+    def post(self, token, resource, params, payload):
         headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
-        response = requests.post(self.protocol + '://' + self.api_host + self.resource_endpoint + resource , headers=headers, data=json.dumps(payload))
+        response = requests.post(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers, data=json.dumps(payload))
         return response.json()
 
     def delete(self, token, resource):
