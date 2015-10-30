@@ -25,6 +25,12 @@ class CleanupApplicationsWithSamePackageKeyStrings(BaseMigrator):
 def main(argv):
     migrate_applications = CleanupApplicationsWithSamePackageKeyStrings()
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--nodryrun', action='store_true', default=False, help='specify to perform work, leave off command for dry run')
+
+    args = parser.parse_args()
+    nodryrun = args.nodryrun
+
     if (migrate_applications.confirm_ready() == False):
         return        
 
@@ -46,26 +52,27 @@ def main(argv):
                 migrate_applications.logger.info('Updating application: %s', json.dumps(application))
                 keys = application['package_keys']
                 for key in keys:
-                    print key['apikey']
                     key_count += 1
 
-                    # archive package key
-                    migrate_applications.archive(migrate_applications.migration_environment.configuration['migration']['backup_location'], key)
-                    
-                    # create app
-                    application.pop('package_keys', None)
-                    new_application = migrate_applications.base.create('application', application)
+                    if nodryrun == True:
+                        # archive package key
+                        migrate_applications.archive(migrate_applications.migration_environment.configuration['migration']['backup_location'], key)
+                        
+                        # create app
+                        application.pop('package_keys', None)
+                        new_application = migrate_applications.base.create('application', application)
 
-                    # delete and re-create package key
-                    migrate_applications.base.delete('package_key', key)
-                    key['application'] = {}
-                    key['application']['id'] = new_application['result']['id']
-                    new_package_key = migrate_applications.base.create('package_key', key)
-                    if new_package_key['result']['status'] != key['status']:
-                        new_package_key['result']['status'] = key['status']
-                        migrate_applications.base.update('package_key', new_package_key['result'])
+                        # delete and re-create package key
+                        migrate_applications.base.delete('package_key', key)
+                        key['application'] = {}
+                        key['application']['id'] = new_application['result']['id']
+                        new_package_key = migrate_applications.base.create('package_key', key)
+                        if new_package_key['result']['status'] != key['status']:
+                            new_package_key['result']['status'] = key['status']
+                            migrate_applications.base.update('package_key', new_package_key['result'])
 
-                migrate_applications.base.delete('application', application)
+                if nodryrun == True:
+                    migrate_applications.base.delete('application', application)
                     
                 application_success_count += 1
             except ValueError as err:
