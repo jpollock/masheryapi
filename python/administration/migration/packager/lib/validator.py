@@ -71,7 +71,7 @@ class Validator:
     def validate_package_key(self, package_key_data, key_data_from_backup):
         valid = True
         for val in package_key_data:
-            if (val == 'object_type' or val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application' or val == 'package' or val == 'plan' or val == 'service'):
+            if (val == 'object_type' or val == 'uuid' or val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application' or val == 'package' or val == 'plan' or val == 'service'):
                 continue
 
             
@@ -103,7 +103,7 @@ class Validator:
 
     def validate_service_key(self, key_data, key_data_from_backup):
         for val in key_data:
-            if (val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application' or val == 'service' or val == 'developer_class'):
+            if (val == 'uuid' or val == 'id' or val == 'created' or val == 'updated' or val == 'member' or val == 'application' or val == 'service' or val == 'developer_class'):
                 continue
 
             n_val = key_data[val]
