@@ -16,8 +16,8 @@ class CleanupApplicationsWithSamePackageKeyStrings(BaseMigrator):
         for key in application['package_keys']:
             if (key['apikey'] not in key_set):
                 key_set.append(key['apikey'])
-
-        if (len(key_set) == 1 and len(application['package_keys']) > 1):
+        print len(key_set)
+        if ((len(key_set) == 1 or len(key_set) < len(application['package_keys'])) and len(application['package_keys']) > 1):
             return 1
 
         return 0
@@ -36,7 +36,7 @@ def main(argv):
 
     # fetch all of the applications that are not packaged in the area
     try:
-        applications = migrate_applications.base.fetch('applications', '*, member, package_keys, package_keys.package.id, package_keys.plan.id', '')
+        applications = migrate_applications.base.fetch('applications', '*, member, package_keys, package_keys.package.id, package_keys.plan.id', 'WHERE is_packaged = true')
     except ValueError as err:
         migrate_applications.logger.error('Error fetching data: %s', json.dumps(err.args))
         return
