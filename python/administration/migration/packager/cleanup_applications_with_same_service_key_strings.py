@@ -46,7 +46,7 @@ def main(argv):
 
     # fetch all of the applications that are not packaged in the area
     try:
-        applications = migrate_applications.base.fetch('applications', '*, member, keys, keys.service', '')
+        applications = migrate_applications.base.fetch('applications', '*, member, keys, keys.service', 'WHERE is_packaged = false')
     except ValueError as err:
         migrate_applications.logger.error('Error fetching data: %s', json.dumps(err.args))
         return
