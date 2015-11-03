@@ -80,6 +80,7 @@ def main(argv):
                         migrate_applications.base.delete('key', key)
                         key['application'] = {}
                         key['application']['id'] = new_application['result']['id']
+                        key['member'] = application['member']
                         new_key = migrate_applications.base.create('key', key)
                         if new_key['result']['status'] != key['status']:
                             new_key['result']['status'] = key['status']
