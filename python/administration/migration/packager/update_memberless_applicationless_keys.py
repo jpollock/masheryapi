@@ -96,6 +96,7 @@ def main(argv):
             username = update_keys.migration_environment.configuration['mashery_area']['name'] + '_' + update_keys.migration_environment.configuration['migration']['new_member_string'] + '_' + str(member_count)
 
             member = update_keys.get_member_for_memberless_key(username, update_keys.migration_environment.configuration['migration']['member_email'], nodryrun)
+            time.sleep(5)
             if (member == None):
                 return
 
@@ -111,10 +112,11 @@ def main(argv):
             update_keys.logger.info('Applicationless key: %s', key['apikey'])
             application_count += 1 # keep track of apps needed to create
 
-            application = {}
-            application['name'] = 'Application for ' + member['username']
+            if ('username' in member):
+                application['name'] = 'Application for ' + member['username'] + " - " + key['apikey']
+            else:
+                application['name'] = 'Application for ' + key['apikey']
             application['member'] = member
-            
 
             update_keys.logger.info('Creating Application: %s', json.dumps(application))
             if (nodryrun == True):
