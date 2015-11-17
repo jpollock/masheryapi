@@ -107,9 +107,12 @@ def main(argv):
             application_count += 1 # keep track of apps needed to create
 
             application = {}
-            application['name'] = 'Application for ' + member['username']
+            if ('username' in member):
+                application['name'] = 'Application for ' + member['username'] + " - " + key['apikey']
+            else:
+                application['name'] = 'Application for ' + key['apikey']
             application['member'] = member
-            
+
             update_keys.logger.info('Creating Application: %s', json.dumps(application))
             if (nodryrun == True):
                 try:
@@ -145,8 +148,6 @@ def main(argv):
                     except ValueError as err:
                         update_keys.logger.error(json.dumps(err.args))
                         return
-
-
 
         # increment counts. key_count is being used to tack how many keys are being added to a member
         key_count = key_count + 1
