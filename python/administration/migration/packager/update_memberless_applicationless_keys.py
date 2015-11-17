@@ -64,10 +64,10 @@ def main(argv):
 
     args = parser.parse_args()
     nodryrun = args.nodryrun
-
+    print nodryrun
     # fetch all of the keys in the area
     try:
-        keys = update_keys.base.fetch('keys', '*, member, application.*, application.member', '')
+        keys = update_keys.base.fetch('keys', '*, member, application', '')
         member_schema = update_keys.base.object_describe('member')
         application_schema = update_keys.base.object_describe('application')
     except ValueError as err:
@@ -82,12 +82,9 @@ def main(argv):
 
     # for each key, we're looking for memberless and applicationless one
     for key in keys:
-        #if key['apikey'] != 'rupaapi':
-        #    continue
-
         memberless = False
         member = None # keep this around in case we need it for applicationless keys
-        if (key['member'] == None and (key['application'] != None and key['application']['member'] == None)):
+        if (key['member'] == None):
             # MEMBERLESS KEY
             update_keys.logger.info('Memberless key: %s', key['apikey'])
             memberless = True
@@ -101,26 +98,24 @@ def main(argv):
                 return
 
         else:
-            if ((key['member'] == None and (key['application'] != None and key['application']['member'] != None)) or (key['member'] != None and key['application'] != None and key['member']['username'] != key['application']['member']['username'])):
-                member = key['application']['member']
-                memberless = True
-            else:
-                member = key['member']    
-            
+            member = key['member']
 
         if (key['application'] == None):
             update_keys.logger.info('Applicationless key: %s', key['apikey'])
             application_count += 1 # keep track of apps needed to create
 
+            application = {}
             if ('username' in member):
                 application['name'] = 'Application for ' + member['username'] + " - " + key['apikey']
             else:
                 application['name'] = 'Application for ' + key['apikey']
             application['member'] = member
+            
 
-            update_keys.logger.info('Creating Application: %s', json.dumps(application))
             if (nodryrun == True):
+
                 try:
+                    update_keys.logger.info('Creating Application: %s', json.dumps(application))
                     application = update_keys.base.create('application', application)
 
                 except ValueError as err:
@@ -136,7 +131,6 @@ def main(argv):
 
                 key['application'] = application['result']
                 key['member'] = member
-                key['username'] = member['username']
             
                 try:
                     update_keys.logger.info('Updating key: %s', json.dumps(key))
@@ -145,22 +139,22 @@ def main(argv):
                     update_keys.logger.error(json.dumps(err.args))
                     return
         elif (key['application'] != None and memberless == True): # handling memberless keys with applications
+            
+            if (nodryrun == True):
                 key['member'] = member
-                update_keys.logger.info('Updating key: %s', json.dumps(key))
-                if (nodryrun == True):
-                    try:
-                        update_keys.base.update('key', key)
-                    except ValueError as err:
-                        update_keys.logger.error(json.dumps(err.args))
-                        return
-
-
+                try:
+                    update_keys.logger.info('Updating key: %s', json.dumps(key))
+                    update_keys.base.update('key', key)
+                except ValueError as err:
+                    update_keys.logger.error(json.dumps(err.args))
+                    return
 
         # increment counts. key_count is being used to tack how many keys are being added to a member
         key_count = key_count + 1
         if (key_count == 100):
             key_count += 1
             member_count += 1
+
 
     print 'Run Type:' + ('Creation' if nodryrun else 'Dry Run')
     print 'Members created:' + str(member_count)
