@@ -58,11 +58,18 @@ class BaseMigrator:
         print '================================================'
         print 'Area ID= ' + str(self.migration_environment.configuration['mashery_area']['id'])
         print 'Area Name= ' + self.migration_environment.configuration['mashery_area']['name']
+        print 'API Hostname/Environment= ' + self.migration_environment.configuration['mashery_api']['hostname']
+        print ' '
+        print 'Backup Location= ' + self.migration_environment.configuration['migration']['backup_location']
+        print 'Log Location= ' + self.migration_environment.configuration['migration']['log_location']
+        print 'Key Input File= ' + self.migration_environment.configuration['migration']['key_input_file']
+        print ' '
         print '================================================'
+
         proceed = raw_input('Proceed? (y/n)')
         if proceed == 'y':
             return True
-
+            
         return False
 
     def ready_for_migration(self):
