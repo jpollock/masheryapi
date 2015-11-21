@@ -19,20 +19,23 @@ class MasheryV3:
 
     def get(self, token, resource, params):
         headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
-        response = requests.get(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers)
+        response = requests.get(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers, verify=False)
+        print response.text
         return response.json()
 
     def put(self, token, resource, params, payload):
         headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
-        response = requests.put(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers, data=json.dumps(payload))
+        response = requests.put(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers, data=json.dumps(payload), verify=False)
         return response.json()
 
     def post(self, token, resource, params, payload):
         headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
-        response = requests.post(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers, data=json.dumps(payload))
+        print self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params
+        response = requests.post(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers, data=json.dumps(payload), verify=False)
         return response.json()
 
     def delete(self, token, resource):
         headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
-        response = requests.delete(self.protocol + '://' + self.api_host + self.resource_endpoint + resource , headers=headers)
+        response = requests.delete(self.protocol + '://' + self.api_host + self.resource_endpoint + resource , headers=headers, verify=False)
+        print response.json
         return response.status_code
