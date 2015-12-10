@@ -82,7 +82,7 @@ def main(argv):
     for key in keys:
         memberless = False
         member = None # keep this around in case we need it for applicationless keys
-        if (key['member'] == None and (key['application'] != None and key['application']['member'] == None)):
+        if (key['member'] == None and (key['application'] == None or (key['application'] != None and key['application']['member'] == None))):
             # MEMBERLESS KEY
             update_keys.logger.info('Memberless key: %s', key['apikey'])
             memberless = True
