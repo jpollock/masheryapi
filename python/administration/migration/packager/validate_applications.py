@@ -46,7 +46,7 @@ def main(argv):
         try:
             validate_applications.base.validate('application', application_data)
         except ValueError as err:
-            validate_applications.logger.error('Invalid application: %s', json.dumps(err.args))
+            validate_applications.logger.error('INVALID APPLICATION (id= %s): %s', application_data['id'], json.dumps(err.args))
 
         for key in application['keys']:
             if (packagekeys == True):
