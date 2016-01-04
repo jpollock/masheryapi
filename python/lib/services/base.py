@@ -81,6 +81,8 @@ class Base:
           result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
           if (self.logger != None):
               self.logger.info('RESPONSE: %s', json.dumps(result))
+          if result['result'] != True:
+              raise ValueError(result)
           return result
       except ValueError as err:
           if (self.logger != None):
