@@ -86,6 +86,21 @@ def getEmailTemplateForService(api, email_template_sets):
             return email_template_set
     return None
 
+def uniqueNotifyAdminEmails(notifications):
+    notify_admin_emails = notifications['warn_to'].split('\n')
+    notify_admin_emails.extend(notifications['warn_cc'].split('\n'))
+    notify_admin_emails.extend(notifications['warn_bcc'].split('\n'))
+    notify_admin_emails.extend(notifications['over_to'].split('\n'))
+    notify_admin_emails.extend(notifications['over_cc'].split('\n'))
+    notify_admin_emails.extend(notifications['over_bcc'].split('\n'))
+    notify_admin_emails.extend(notifications['qps_to'].split('\n'))
+    notify_admin_emails.extend(notifications['qps_cc'].split('\n'))
+    notify_admin_emails.extend(notifications['qps_bcc'].split('\n'))
+
+    notify_admin_emails_set = set(notify_admin_emails)
+
+    return list(notify_admin_emails_set)
+
 def buildPackagedApi(api, notifications):
     package = {}
     package['name'] = api['name']
@@ -94,16 +109,7 @@ def buildPackagedApi(api, notifications):
     package['key_adapter'] = api['service']['key_adapter']
     package['near_quota_threshold'] = int(notifications['warn_percent'])
 
-    notify_admin_emails = ''
-    notify_admin_emails = notifications['warn_bcc']
-
-    if notifications['over_bcc'] != '' and notify_admin_emails == '':
-        notify_admin_emails = notifications['over_bcc']
-
-    if notifications['qps_bcc'] != '' and notify_admin_emails == '':
-        notify_admin_emails = notifications['qps_bcc']
-
-    package['notify_admin_emails'] = notify_admin_emails
+    package['notify_admin_emails'] = uniqueNotifyAdminEmails(notifications)
 
     if notifications['warn_admin'] == '1':
         package['notify_admin_near_quota'] = True
@@ -337,7 +343,7 @@ def main(argv):
             plan_endpoints = buildPlanEndpoints(api, plan)
             created_plan_endpoints = create(env, area_name, apikey, secret, 'plan_endpoint', plan_endpoints)
 
-	return
+    return
 
 if __name__ == "__main__":
     main(sys.argv[1:])        
