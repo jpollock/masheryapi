@@ -109,7 +109,7 @@ def buildPackagedApi(api, notifications):
     package['key_adapter'] = api['service']['key_adapter']
     package['near_quota_threshold'] = int(notifications['warn_percent'])
 
-    package['notify_admin_emails'] = uniqueNotifyAdminEmails(notifications)
+    package['notify_admin_emails'] = ','.join(uniqueNotifyAdminEmails(notifications))
 
     if notifications['warn_admin'] == '1':
         package['notify_admin_near_quota'] = True
@@ -306,6 +306,7 @@ def main(argv):
     email_template_sets = fetch(env, area_name, apikey, secret, 'email_template_sets', '*', '')
 
     for api in apis:
+        print api['service_key']
         api_config = []
         if api['service_key'] in api_configs:
             api_config = api_configs[api['service_key']]
