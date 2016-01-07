@@ -109,7 +109,11 @@ def buildPackagedApi(api, notifications):
     package['key_adapter'] = api['service']['key_adapter']
     package['near_quota_threshold'] = int(notifications['warn_percent'])
 
-    package['notify_admin_emails'] = ','.join(uniqueNotifyAdminEmails(notifications))
+    notify_admin_emails = ','.join(uniqueNotifyAdminEmails(notifications))
+    if notify_admin_emails.startswith( ',' ):
+        notify_admin_emails = notify_admin_emails[1:]
+        
+    package['notify_admin_emails'] = notify_admin_emails
 
     if notifications['warn_admin'] == '1':
         package['notify_admin_near_quota'] = True
