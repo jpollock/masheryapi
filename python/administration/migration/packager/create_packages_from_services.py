@@ -289,8 +289,8 @@ def main(argv):
     parser.add_argument("env", type=str, help="Is this a production area or a sandbox area")
     parser.add_argument("area_name", type=str, help="Mashery Area Name")
     parser.add_argument("config_file", type=str, help="Full path to config file containing json blobs")
+    parser.add_argument("file_with_service_ids", type=str, help="Full path to file containging list of service ids for which to create packages", nargs='?')
     
-
     args = parser.parse_args()
 
     apikey = args.apikey
@@ -304,12 +304,20 @@ def main(argv):
     print 'Production? ' + env 
     print "Area: " + area_name
 
+    service_ids = []
+    if args.file_with_service_ids != None: # adding capability to pass in a list of service ids for which packages should be created
+        service_ids = [line.rstrip() for line in open(args.file_with_service_ids)]
+
     apis = fetch(env, area_name, apikey, secret, 'service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
     api_configs = fetch_service_configs(config_file)
     packages = fetch(env, area_name, apikey, secret, 'packages', '*, plans', '')
     email_template_sets = fetch(env, area_name, apikey, secret, 'email_template_sets', '*', '')
 
     for api in apis:
+        if args.file_with_service_ids != None: # checking to see if passed in service ids
+            if api['service_key'] not in service_ids: # if passed in, then check to see if the api is in the list, if not, skipe
+                return
+
         print api['service_key']
         api_config = []
         if api['service_key'] in api_configs:
