@@ -72,7 +72,6 @@ def delete(env, siteId, apikey, secret, object_type, item_data):
     except ValueError as err:
         print err
 
-
 def getPackageForService(api, packages):
     for package in packages:
         if (package['name'] == (api['name'] + '- created for Mashery Packager Migration')):
