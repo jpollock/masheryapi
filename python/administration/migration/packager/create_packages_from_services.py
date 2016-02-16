@@ -15,7 +15,6 @@ def post(env, area_name, apikey, secret, payload):
     resourceEndpoint = ''
     headers = {"Content-type": "application/json"}
     url = apiHost + resourceEndpoint + '?mashery_area=' + area_name + '&apikey=' + apikey + '&sig=' + hash(apikey, secret)
-    print url
     response = requests.post(url, headers=headers, data=payload, verify=False)
     if (response.status_code == 200):
         return response.json()
@@ -32,13 +31,13 @@ def hash(apikey, secret):
 def fetch(env, area_name, apikey, secret, object_type, fields, filter_clause):
     results = []
     try:
-        result = post(env, area_name, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' ITEMS 1000"]}')
+        result = post(env, area_name, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' ITEMS 50"]}')
         results.extend(result['result']['items'])
         total_pages = result['result']['total_pages']
         page = 1
         while (page < total_pages):
             page = page + 1
-            result = post(env, area_name, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' PAGE ' + str(page) + ' ITEMS 1000"]}')
+            result = post(env, area_name, apikey, secret, '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' PAGE ' + str(page) + ' ITEMS 50"]}')
             results.extend(result['result']['items'])
             
     except ValueError as err:
@@ -316,14 +315,19 @@ def main(argv):
     for api in apis:
         if args.file_with_service_ids != None: # checking to see if passed in service ids
             if api['service_key'] not in service_ids: # if passed in, then check to see if the api is in the list, if not, skipe
-                return
+               print "Skipping " + api['service_key']
+               continue 
 
         print api['service_key']
         api_config = []
         if api['service_key'] in api_configs:
             api_config = api_configs[api['service_key']]
         else:
-            return
+            print ""
+            print "Need to create the package for this service manually: "
+            print api
+            print ""
+            continue
 
         package = getPackageForService(api, packages)
         if (package != None):
@@ -359,4 +363,4 @@ def main(argv):
     return
 
 if __name__ == "__main__":
-    main(sys.argv[1:])        
+    main(sys.argv[1:]) 
