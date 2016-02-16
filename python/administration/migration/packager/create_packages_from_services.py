@@ -75,7 +75,7 @@ def delete(env, siteId, apikey, secret, object_type, item_data):
 
 def getPackageForService(api, packages):
     for package in packages:
-        if (package['name'] == api['name']):
+        if (package['name'] == (api['name'] + '- created for Mashery Packager Migration')):
             return package
     return None
 
@@ -102,7 +102,7 @@ def uniqueNotifyAdminEmails(notifications):
 
 def buildPackagedApi(api, notifications):
     package = {}
-    package['name'] = api['name']
+    package['name'] = api['name'] + '- created for Mashery Packager Migration'
     package['shared_secret_length'] = api['service']['shared_secret_length']
     package['key_length'] = api['service']['key_length']
     package['key_adapter'] = api['service']['key_adapter']
