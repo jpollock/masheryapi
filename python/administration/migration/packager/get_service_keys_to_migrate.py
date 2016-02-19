@@ -13,7 +13,7 @@ class GetServiceKeysToMigrate(BaseMigrator):
         for api in apis:
             if (api['service_key'] == key['service_key']):
                 for plan in plans:
-                    if (plan['package']['name'] == api['name']):
+                    if (plan['package']['name'] == (api['name'] + '- created for Mashery Packager Migration')):
                         key_to_migrate['package_id'] = plan['package']['id']
                         plan_name = api['name']
                         if (key['developer_class'] != None):
