@@ -63,7 +63,7 @@ class Validator:
                 return False
 
             if (self.plan_contains_service(plan_data, key['service_key']) == False):
-                self.logger.error('Plan does not contain service: %s', key_data['service_key'])
+                self.logger.error('Package %s Plan %s does not contain service: %s', plan_data['package']['name'], plan_data['name'], key['service_key'])
                 return False
 
         return True
