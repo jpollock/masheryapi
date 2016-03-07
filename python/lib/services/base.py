@@ -47,10 +47,10 @@ class Base:
 
         return None
 
-    def fetch(self, object_type, fields, filter_clause):
+    def fetch(self, object_type, fields, filter_clause, limit=100):
       results = []
       try:
-          method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' ITEMS 1000"]}'
+          method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' ITEMS ' + str(limit) + '"]}'
           result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
 
           results.extend(result['result']['items'])
@@ -59,7 +59,7 @@ class Base:
 
           while (page < total_pages):
             page = page + 1
-            method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' PAGE ' + str(page) + ' ITEMS 1000"]}'
+            method = '{"method":"object.query","id":1,"params":["select ' + fields + ' from ' + object_type + ' ' + filter_clause + ' PAGE ' + str(page) + ' ITEMS ' + str(limit) + '"]}'
 
             result = self.masheryV2.post(self.site_id, self.apikey, self.secret, method)
             results.extend(result['result']['items'])
