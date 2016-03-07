@@ -26,7 +26,7 @@ class GetServiceKeysToMigrate(BaseMigrator):
 
 def main(argv):
     get_keys_to_migrate = GetServiceKeysToMigrate()
-    if (get_keys_to_migrate.migration_environment.valid() == False):
+    '''if (get_keys_to_migrate.migration_environment.valid() == False):
         print 'Migration Environment not setup properly.'
         return
 
@@ -36,7 +36,7 @@ def main(argv):
 
     if (get_keys_to_migrate.confirm_ready() == False):
         return
-
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--file_with_keys',  nargs='?', help='file with keys')
 
@@ -45,8 +45,8 @@ def main(argv):
 
     # fetch data necessary for the rest of the script
     try:
-        apis = get_keys_to_migrate.base.fetch('service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '')
-        plans = get_keys_to_migrate.base.fetch('plans', '*, package, plan_services.service_definition', '')
+        apis = get_keys_to_migrate.base.fetch('service_definitions', '*, service, service_definition_endpoints, service.service_classes, service.service_classes.developer_class', '', 1000)
+        plans = get_keys_to_migrate.base.fetch('plans', '*, package, plan_services.service_definition', '', 1000)
         applications = get_keys_to_migrate.base.fetch('applications', '*, keys, keys.developer_class', '')
     except ValueError as err:
         get_keys_to_migrate.logger.error('Error fetching data: %s', json.dumps(err.args))
