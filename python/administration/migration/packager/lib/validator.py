@@ -58,7 +58,7 @@ class Validator:
                 self.logger.error('Problem fetching package plan: %s', json.dumps(key))
                 return False
 
-            if (plan_data['package']['name'] != api_data['name']):
+            if (plan_data['package']['name'] != (api_data['name'] + '- created for Mashery Packager Migration')):
                 self.logger.error('Mismatch on package and api name: %s %s', plan_data['package']['name'], api_data['name'])
                 return False
 
