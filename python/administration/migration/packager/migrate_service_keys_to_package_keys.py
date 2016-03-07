@@ -82,7 +82,7 @@ class MigrateServiceKeysToPackageKeys(BaseMigrator):
 
         ready = True
             
-        if (plan_data['package']['name'] != api_data['name']):
+        if (plan_data['package']['name'] != (api_data['name'] + '- created for Mashery Packager Migration')):
             ready = False
             result['Service Name Does Not Match Package Name'] = True
 
