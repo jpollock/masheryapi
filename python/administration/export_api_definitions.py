@@ -22,7 +22,7 @@ class ExportApiDefinitions():
     def get_api(self, api_id):
         api = self.masheryV3.get(self.token, '/services/' + api_id, 'fields=id,name,description,securityProfile,qpsLimitOverall,rfc3986Encode,version,cache,endpoints.inboundSslRequired,endpoints.jsonpCallbackParameter,endpoints.jsonpCallbackParameterValue,endpoints.scheduledMaintenanceEvent,endpoints.forwardedHeaders,endpoints.returnedHeaders,endpoints.id,endpoints.name,endpoints.numberOfHttpRedirectsToFollow,endpoints.outboundRequestTargetPath,endpoints.outboundRequestTargetQueryParameters,endpoints.outboundTransportProtocol,endpoints.processor,endpoints.publicDomains,endpoints.requestAuthenticationType,endpoints.requestPathAlias,endpoints.requestProtocol,endpoints.oauthGrantTypes,endpoints.supportedHttpMethods,endpoints.apiMethodDetectionLocations,endpoints.apiMethodDetectionKey,endpoints.systemDomainAuthentication,endpoints.setpassword.setPassword,endpoints.systemDomains,endpoints.trafficManagerDomain,endpoints.updated,endpoints.useSystemDomainCredentials,endpoints.systemDomainCredentialKey,endpoints.systemDomainCredentialSecret,endpoints.methods,endpoints.methods.id,endpoints.methods.name,endpoints.methods.sampleXmlResponse,endpoints.methods.sampleJsonResponse,endpoints.strictSecurity,endpoints.highSecurity,endpoints.allowMissingApiKey,endpoints.hostPassthroughIncludedInBackendCallHeader,endpoints.cors,endpoints.customRequestAuthenticationAdapter,endpoints.headersToExcludeFromIncomingCall,endpoints.rateLimitHeadersEnabled,endpoints.forceGzipOfBackendCall,endpoints.gzipPassthroughSupportEnabled,endpoints.cookiesDuringHttpRedirectsEnabled,endpoints.connectionTimeoutForSystemDomainRequest,endpoints.connectionTimeoutForSystemDomainResponse,endpoints.rateLimitHeadersEnabled,endpoints.dropApiKeyFromIncomingCall,endpoints.cache,endpoints.processor,securityProfile.oauth')
         if 'errorCode' in api:
-            print api
+            print 'problem fetching...' + str(api_id) + ' ERROR:' + json.dumps(api)
             return
         return api
 
@@ -60,6 +60,7 @@ def main(argv):
     for api in apis:
         api = export_api_definitions.get_api(api['id'])
         if api != None:
+            print 'exporting...' + api['id']
             export_api_definitions.archive(output_directory, api)
     
 if __name__ == "__main__":
