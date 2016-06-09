@@ -43,7 +43,7 @@ class Validator:
 
         for key in application['keys']:
             if ('package_id' not in key or 'plan_id' not in key or 'service_key' not in key):
-                self.logger.warn('Application %s has keys without package plan or service', str(application['id']))
+                self.logger.warn('Application %s has keys assigned to a service without a match for a package plan, key=%s', str(application['id']), json.dumps(key))                
                 return False
 
             # fetch api data
