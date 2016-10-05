@@ -1,4 +1,3 @@
-#python testDataSetup.py 4ngdrf2tg62gvgsq7z9fd2f7 xgqZPDC9 47404
 echo 'Preparing Service Keys For Migration'
 python update_memberless_applicationless_keys.py --nodryrun
 echo 'Getting Service Keys To Migrate'
