@@ -19,22 +19,22 @@ class ExportAreaData():
             return
 
     def list(self, resource):
-        apis = self.masheryV3.get(self.token, resource, 'fields=id&limit=1000')
-        if 'errorCode' in apis:
-            print apis
+        items = self.masheryV3.get_all(self.token, resource, 'fields=id')
+        if 'errorCode' in items:
+            print items
             return
-        return apis
+        return items
 
     def get(self, resource, fields):
-        api = self.masheryV3.get(self.token, resource, fields)
-        if 'errorCode' in api:
-            print 'problem fetching...' + str(api_id) + ' ERROR:' + json.dumps(api)
+        item = self.masheryV3.get(self.token, resource, fields)
+        if 'errorCode' in item:
+            print 'problem fetching...' + resource + ' ERROR:' + json.dumps(item)
             return
-        return api
+        return item
 
-    def archive(self, backup_location, api):
-        f = open(backup_location + str(api['id']) + '.json', 'w')
-        f.write(json.dumps(api, sort_keys=True, indent=4, separators=(',', ': ')))
+    def archive(self, backup_location, item):
+        f = open(backup_location + str(item['id']) + '.json', 'w')
+        f.write(json.dumps(item, sort_keys=True, indent=4, separators=(',', ': ')))
         f.write('\n')
         f.close()
 
@@ -44,7 +44,6 @@ class ExportAreaData():
         except OSError:
             if not os.path.isdir(path):
                 raise
-
 
     def export(self, resource, fields):
         path_to_dir = self.output_directory + '/' + self.mashery_area_uuid + '/' + resource
