@@ -39,6 +39,7 @@ def main(argv):
     parser.add_argument("api_resource", type=str, help="Resource Path to update, e.g. /members or /members/312312412414")
     parser.add_argument("property_to_update", type=str, help="Item property to update")
     parser.add_argument("new_property_value", type=str, help="New Item property")
+    parser.add_argument("where_clause", type=str, help="Where clause")
 
     args = parser.parse_args()
   
@@ -50,6 +51,7 @@ def main(argv):
     api_resource = args.api_resource
     property_to_update = args.property_to_update
     new_property_value = args.new_property_value
+    where_clause = args.where_clause
 
     resource_params = 'fields=id,' + property_to_update
 
@@ -58,7 +60,12 @@ def main(argv):
     items_to_update = update_items.get_items(api_resource, resource_params)
 
     for item in items_to_update:
-        print update_items.update(api_resource + "/" + item['id'], resource_params, property_to_update, new_property_value)
+        update = True
+        if where_clause != None and eval('"' + item[property_to_update] +'"' + where_clause) == False:
+            update = False
+
+        if update == True:
+            print update_items.update(api_resource + "/" + item['id'], resource_params, property_to_update, new_property_value)
     
 if __name__ == "__main__":
     main(sys.argv[1:])
