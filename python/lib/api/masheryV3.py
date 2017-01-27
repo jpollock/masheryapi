@@ -17,6 +17,22 @@ class MasheryV3:
         else:
             return response.json()
 
+    def get_all(self, token, resource, params):
+        all_items = []
+
+        headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
+        response = requests.get(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers)
+        total_count = response.headers['X-Total-count']
+
+        offset = 0
+        while len(all_items) < int(total_count):
+            response = requests.get(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params + '&limit=1000&offset=' + str(offset), headers=headers)
+            items = response.json()
+            all_items.extend(items)
+            offset = len(items) + 1
+            
+        return all_items
+
     def get(self, token, resource, params):
         headers = {"Content-type": "application/json", "Authorization": 'Bearer ' + token}
         response = requests.get(self.protocol + '://' + self.api_host + self.resource_endpoint + resource + '?' + params, headers=headers)
